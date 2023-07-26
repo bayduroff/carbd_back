@@ -1,0 +1,27 @@
+<!DOCTYPE html>
+<html lang="en" xmlns:th = "http://www.thymeleaf.org">
+<head>
+    <meta charset="UTF-8">
+    <title>New vehicle</title>
+</head>
+<body>
+
+<form th:method = "POST" th:action = "@{/vehicles}" th:object = "${vehicle}">
+    <label for="brand"> Enter brand: </label>
+    <input type = "text" th:field = "*{brand}" id = "brand"/>
+    <div style ="color:red" th:if = "${#fields.hasErrors('brand')}" th:errors="*{brand}"> Brand error </div>
+    <br/>
+    <label for="model"> Enter model: </label>
+    <input type = "text" th:field = "*{model}" id = "model"/>
+    <div style ="color:red" th:if = "${#fields.hasErrors('model')}" th:errors="*{model}"> Model error </div>
+    <br/>
+    <label for="year"> Enter year: </label>
+    <input type = "text" th:field = "*{year}" id = "year"/>
+    <div style ="color:red" th:if = "${#fields.hasErrors('year')}" th:errors="*{year}"> Year error </div>
+    <br/>
+    <input type = "submit" value="Create!"/>
+</form>
+
+
+</body>
+</html>

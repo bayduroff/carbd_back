@@ -1,0 +1,17 @@
+<!DOCTYPE html>
+<html lang="en" xmlns:th="http://www.thymeleaf.org">
+<head>
+    <meta charset="UTF-8">
+    <title>Show</title>
+</head>
+<body>
+<p th:text="${vehicle.getBrand() + ' ' + vehicle.getModel()}">VALUE</p>
+<p th:text="${vehicle.getYear()}">VALUE</p>
+
+<a th:href="@{/vehicles/{id}/edit(id=${vehicle.getVin()})}">Edit</a>
+
+<form th:method="DELETE" th:action="@{/vehicles/{id}(id=${vehicle.getVin()})}">
+    <input type="submit" value="Delete"/>
+</form>
+</body>
+</html>

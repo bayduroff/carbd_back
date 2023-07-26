@@ -1,0 +1,27 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <title>Person vehicles</title>
+</head>
+<body>
+<p th:text="${person.getName() + ' ' + person.getPatronymic() + ' ' + person.getSurname()}">VALUE</p>
+
+<p th:text="${person.getVehicles()}">VALUE</p>
+
+<!--<div th:each = "person : ${people}">
+    <a th:href ="@{/people/{id}(id = ${person.getId()})}"
+       th:text ="${person.getName() + ',' + person.getSurname()}"> user </a>
+</div>-->
+<br/>
+<hr/>
+
+<!--<label for="with id">Attach car with vin = : </label>-->
+
+<form th:method="PUT" th:action="@{/people/{id}/vehicles/{vin}(id=${person.getId()})}" th:object="${person}">
+    <input type = "text" id="vin" name = "vin">
+    <input type = "submit" value="Add!"/>
+    <br/>
+</form>
+</body>
+</html>

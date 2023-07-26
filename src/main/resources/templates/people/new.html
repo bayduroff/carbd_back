@@ -1,0 +1,31 @@
+<!DOCTYPE html>
+<html lang="en" xmlns:th = "http://www.thymeleaf.org">
+<head>
+    <meta charset="UTF-8">
+    <title>New person</title>
+</head>
+<body>
+
+<form th:method = "POST" th:action = "@{/people}" th:object = "${person}">
+    <label for="passport"> Enter passport: </label>
+    <input type = "text" th:field = "*{passport}" id = "passport"/>
+    <div style ="color:red" th:if = "${#fields.hasErrors('passport')}" th:errors="*{passport}"> Passport error </div>
+    <br/>
+    <label for="name"> Enter name: </label>
+    <input type = "text" th:field = "*{name}" id = "name"/>
+    <div style ="color:red" th:if = "${#fields.hasErrors('name')}" th:errors="*{name}"> Name error </div>
+    <br/>
+    <label for="surname"> Enter surname: </label>
+    <input type = "text" th:field = "*{surname}" id = "surname"/>
+    <div style ="color:red" th:if = "${#fields.hasErrors('surname')}" th:errors="*{surname}"> Surname error </div>
+    <br/>
+    <label for="patronymic"> Enter patronymic: </label>
+    <input type = "text" th:field = "*{patronymic}" id = "patronymic"/>
+    <div style ="color:red" th:if = "${#fields.hasErrors('patronymic')}" th:errors="*{patronymic}"> Patronymic error </div>
+    <br/>
+    <input type = "submit" value="Create!"/>
+</form>
+
+
+</body>
+</html>
