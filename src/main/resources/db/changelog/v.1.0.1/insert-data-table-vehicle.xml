@@ -1,0 +1,29 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<databaseChangeLog
+        xmlns="http://www.liquibase.org/xml/ns/dbchangelog"
+        xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+        xsi:schemaLocation="http://www.liquibase.org/xml/ns/dbchangelog http://www.liquibase.org/xml/ns/dbchangelog/dbchangelog-4.6.xsd">
+
+    <changeSet  id="insert-data-table-vehicle" author="bayduroff"  >
+
+        <insert tableName="vehicle">
+            <column  name="model"  value="X5"/>
+            <column  name="brand"  value="BMW"/>
+            <column  name="year"  value="2015"/>
+        </insert>
+
+        <insert tableName="vehicle">
+            <column  name="model"  value="Kalina"/>
+            <column  name="brand"  value="Lada"/>
+            <column  name="year"  value="2010"/>
+        </insert>
+
+        <insert tableName="vehicle">
+            <column  name="model"  value="Focus"/>
+            <column  name="brand"  value="Ford"/>
+            <column  name="year"  value="2020"/>
+        </insert>
+
+    </changeSet>
+
+</databaseChangeLog>

@@ -1,0 +1,26 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<databaseChangeLog
+        xmlns="http://www.liquibase.org/xml/ns/dbchangelog"
+        xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+        xsi:schemaLocation="http://www.liquibase.org/xml/ns/dbchangelog http://www.liquibase.org/xml/ns/dbchangelog/dbchangelog-4.6.xsd">
+
+    <changeSet id="create-table-person_vehicle" author="bayduroff">
+        <createTable tableName="person_vehicle">
+            <column name="person_id" type="int">
+                <constraints nullable="false" foreignKeyName="person_id" references="person(id)"/>
+            </column>
+
+            <column name="vehicle_vin" type="int">
+                <constraints nullable="false" foreignKeyName="vehicle_vin" references="vehicle(vin)"/>
+            </column>
+        </createTable>
+    </changeSet>
+
+    <changeSet id="add-key-person_vehicle" author="bayduroff">
+        <addPrimaryKey columnNames="person_id, vehicle_vin"
+                       constraintName="person_vehicle_pk"
+                       tableName="person_vehicle"
+                       validate="true"/>
+    </changeSet>
+
+</databaseChangeLog>

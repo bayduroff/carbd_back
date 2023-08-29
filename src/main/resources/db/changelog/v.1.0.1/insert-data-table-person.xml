@@ -1,0 +1,32 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<databaseChangeLog
+        xmlns="http://www.liquibase.org/xml/ns/dbchangelog"
+        xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+        xsi:schemaLocation="http://www.liquibase.org/xml/ns/dbchangelog http://www.liquibase.org/xml/ns/dbchangelog/dbchangelog-4.6.xsd">
+
+    <changeSet  id="insert-data-table-person" author="bayduroff"  >
+
+        <insert tableName="person">
+            <column  name="passport"  value="12345"/>
+            <column  name="name"  value="Ilya"/>
+            <column  name="surname"  value="Baydurov"/>
+            <column  name="patronymic"  value="Alexeevich"/>
+        </insert>
+
+        <insert tableName="person">
+            <column  name="passport"  value="54321"/>
+            <column  name="name"  value="Liza"/>
+            <column  name="surname"  value="Shabanova"/>
+            <column  name="patronymic"  value="Alexandrovna"/>
+        </insert>
+
+        <insert tableName="person">
+            <column  name="passport"  value="12345"/>
+            <column  name="name"  value="Alex"/>
+            <column  name="surname"  value="Kulikov"/>
+            <column  name="patronymic"  value="Romanovich"/>
+        </insert>
+
+    </changeSet>
+
+</databaseChangeLog>
