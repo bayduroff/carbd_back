@@ -1,9 +1,13 @@
 package org.gus.carbd.controllers;
 
+import lombok.RequiredArgsConstructor;
+import org.gus.carbd.dto.PersonDTO;
+import org.gus.carbd.dto.VehicleDTO;
 import org.gus.carbd.entity.Person;
 import org.gus.carbd.entity.Vehicle;
+import org.gus.carbd.mapper.PersonDTOMapper;
+import org.gus.carbd.mapper.VehicleDTOMapper;
 import org.gus.carbd.service.VehicleService;
-import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.web.bind.annotation.DeleteMapping;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.PatchMapping;
@@ -15,28 +19,29 @@ import org.springframework.web.bind.annotation.RestController;
 
 import java.util.List;
 import java.util.Set;
+import java.util.stream.Collectors;
 
 @RestController
+@RequiredArgsConstructor
 @RequestMapping(value = "/vehicles")
 //http://localhost:8080/vehicles
 
 public class VehicleController {
 
     public final VehicleService vehicleService;
-
-    @Autowired
-    public VehicleController(VehicleService vehicleService) {
-        this.vehicleService = vehicleService;
-    }
+    public final VehicleDTOMapper vehicleDTOMapper;
+    public final PersonDTOMapper personDTOMapper;
 
     @GetMapping()
-    public List<Vehicle> getVehiclesList() {
-        return vehicleService.getVehiclesList();
+    public List<VehicleDTO> getVehiclesList() {
+        List<Vehicle> vehicleList = vehicleService.getVehiclesList();
+        return vehicleList.stream().map(vehicleDTOMapper::toVehicleDTO).collect(Collectors.toList());
     }
 
     @GetMapping("/{vin}")
-    public Vehicle getVehicleByVin(@PathVariable("vin") int vin) {
-        return vehicleService.getVehicleByVin(vin);
+    public VehicleDTO getVehicleByVin(@PathVariable("vin") int vin) {
+        Vehicle vehicle = vehicleService.getVehicleByVin(vin);
+        return vehicleDTOMapper.toVehicleDTO(vehicle);
     }
 
     @PostMapping("/add")
@@ -55,8 +60,9 @@ public class VehicleController {
     }
 
     @GetMapping("/{vin}/people")
-    public Set<Person> getVehicleOwners(@PathVariable("vin") int vin) {
-        return vehicleService.getVehicleOwners(vin);
+    public Set<PersonDTO> getVehicleOwners(@PathVariable("vin") int vin) {
+        Set<Person> personSet = vehicleService.getVehicleOwners(vin);
+        return personSet.stream().map(personDTOMapper::toPersonDTO).collect(Collectors.toSet());
     }
 
     @GetMapping("/{vin}/peoplepass")
