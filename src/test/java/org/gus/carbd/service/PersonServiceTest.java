@@ -1,12 +1,11 @@
 package org.gus.carbd.service;
 
-import org.gus.carbd.dto.PersonDTO;
+import org.gus.carbd.dto.PersonDto;
 import org.gus.carbd.entity.Person;
 import org.gus.carbd.entity.Vehicle;
 import org.gus.carbd.exception.ResourceNotFoundException;
 import org.gus.carbd.mapper.PersonDtoMapperImpl;
 import org.gus.carbd.repository.PersonRepository;
-import org.gus.carbd.repository.VehicleRepository;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
 import org.mockito.Answers;
@@ -46,10 +45,6 @@ class PersonServiceTest {
     @Mock
     private VehicleService vehicleServiceMock;
 
-    @Mock
-    private VehicleRepository vehicleRepositoryMock;
-
-
     @Test
     void getPeopleListTest() {
         List<Person> people = new ArrayList<>();
@@ -82,10 +77,11 @@ class PersonServiceTest {
     void addPersonPositiveTest() {
         ArgumentCaptor<String> passportCaptor = ArgumentCaptor.forClass(String.class);
         ArgumentCaptor<Person> personCaptor = ArgumentCaptor.forClass(Person.class);
-        doReturn(false).when(personRepositoryMock).existsByPassport(any());
-        PersonDTO personDTO = new PersonDTO();
+        PersonDto personDTO = new PersonDto();
         personDTO.setPassport("12345");
         personDTO.setName("Test");
+
+        doReturn(false).when(personRepositoryMock).existsByPassport(any());
 
         personService.addPerson(personDTO);
         verify(personRepositoryMock).existsByPassport(passportCaptor.capture());
@@ -100,7 +96,7 @@ class PersonServiceTest {
     void addPersonNegativeTest() {
         doReturn(true).when(personRepositoryMock).existsByPassport(any());
 
-        assertThrows(RuntimeException.class, () -> personService.addPerson(new PersonDTO()));
+        assertThrows(RuntimeException.class, () -> personService.addPerson(new PersonDto()));
         verify(personRepositoryMock, never()).save(any());
     }
 
@@ -115,11 +111,12 @@ class PersonServiceTest {
 
     @Test
     void editPersonByIdPositiveTest() {
-        PersonDTO changedPersonDto = new PersonDTO();
+        PersonDto changedPersonDto = new PersonDto();
         changedPersonDto.setPassport("54321");
         Person person = new Person();
         person.setPassport("12345");
         person.setName("Test");
+
         doReturn(Optional.of(person)).when(personRepositoryMock).findById(any());
 
         personService.editPersonById(1, changedPersonDto);
@@ -129,9 +126,17 @@ class PersonServiceTest {
 
     @Test
     void editPersonByIdNegativeTest() {
+        doReturn(Optional.empty()).when(personRepositoryMock).findById(any());
+
+        assertThrows(ResourceNotFoundException.class, () -> personService.editPersonById(1, new PersonDto()));
+        verify(personDtoMapperImplMock, never()).updatePerson(any(), any());
+    }
+
+    @Test
+    void editPersonByIdPassportExistsInDbTest() {
         doReturn(true).when(personRepositoryMock).existsByPassport(any());
 
-        assertThrows(RuntimeException.class, () -> personService.editPersonById(1, new PersonDTO()));
+        assertThrows(RuntimeException.class, () -> personService.editPersonById(1, new PersonDto()));
         verify(personDtoMapperImplMock, never()).updatePerson(any(), any());
     }
 
@@ -278,6 +283,7 @@ class PersonServiceTest {
     void getPersonByPassportPositiveTest() {
         Person person = new Person();
         person.setName("Test");
+
         doReturn(Optional.of(person)).when(personRepositoryMock).findByPassport(anyString());
 
         var result = personService.getPersonByPassport("123");

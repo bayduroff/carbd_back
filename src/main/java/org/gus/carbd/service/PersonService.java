@@ -2,7 +2,7 @@ package org.gus.carbd.service;
 
 import jakarta.transaction.Transactional;
 import lombok.RequiredArgsConstructor;
-import org.gus.carbd.dto.PersonDTO;
+import org.gus.carbd.dto.PersonDto;
 import org.gus.carbd.entity.Person;
 import org.gus.carbd.entity.Vehicle;
 import org.gus.carbd.exception.ResourceNotFoundException;
@@ -41,7 +41,7 @@ public class PersonService {
         return person;
     }
 
-    public void addPerson(PersonDTO personDTO) {
+    public void addPerson(PersonDto personDTO) {
         if (personRepository.existsByPassport(personDTO.getPassport())) {
             throw new RuntimeException("Person with passport: " + personDTO.getPassport() + " already exists");
         }
@@ -54,7 +54,7 @@ public class PersonService {
     }
 
     @Transactional
-    public void editPersonById(int id, PersonDTO changedPersonDto) {
+    public void editPersonById(int id, PersonDto changedPersonDto) {
         if (personRepository.existsByPassport(changedPersonDto.getPassport())) {
             throw new RuntimeException("Person with passport: " + changedPersonDto.getPassport() + " already exists");
         }

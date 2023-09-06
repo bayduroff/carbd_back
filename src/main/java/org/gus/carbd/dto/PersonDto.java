@@ -10,7 +10,7 @@ import java.util.Set;
 @Data
 @AllArgsConstructor
 @NoArgsConstructor
-public class PersonDTO {
+public class PersonDto {
     private Integer id;
     private String passport;
     private String name;

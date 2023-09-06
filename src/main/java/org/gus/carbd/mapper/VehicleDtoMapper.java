@@ -1,7 +1,8 @@
 package org.gus.carbd.mapper;
 
 import org.gus.carbd.dto.PersonDto;
-import org.gus.carbd.entity.Person;
+import org.gus.carbd.dto.VehicleDto;
+import org.gus.carbd.entity.Vehicle;
 import org.mapstruct.Mapper;
 import org.mapstruct.MappingTarget;
 import org.mapstruct.NullValuePropertyMappingStrategy;
@@ -10,15 +11,15 @@ import java.util.List;
 import java.util.Set;
 
 @Mapper(componentModel = "spring", nullValuePropertyMappingStrategy = NullValuePropertyMappingStrategy.IGNORE)
-public interface PersonDtoMapper {
+public interface VehicleDtoMapper {
 
-    PersonDto toPersonDto(Person person);
+    Vehicle toVehicle(VehicleDto vehicleDto);
+    VehicleDto toVehicleDto(Vehicle vehicle);
 
-    List<PersonDto> toPersonDtoList(List<Person> people);
-    Set<PersonDto> toPersonDtoSet(Set<Person> people);
+    List<VehicleDto> toVehicleDtoList(List<Vehicle> vehicles);
 
-    Person toPerson(PersonDto personDTO);
+    Set<VehicleDto> toVehicleDtoSet(Set<Vehicle> vehicles);
 
     //не обращаться к trans методу изнутри PersonDtoMapper
-    void updatePerson(@MappingTarget Person person, PersonDto changedPersonDto);
+    void updateVehicle(@MappingTarget Vehicle vehicle, VehicleDto changedVehicleDto);
 }

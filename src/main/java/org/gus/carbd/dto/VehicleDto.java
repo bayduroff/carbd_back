@@ -14,7 +14,7 @@ import java.util.Set;
 @NoArgsConstructor
 @AllArgsConstructor
 @ToString
-public class VehicleDTO {
+public class VehicleDto {
     private Integer vin;
     private String brand;
     private String model;

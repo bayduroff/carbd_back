@@ -1,9 +1,12 @@
 package org.gus.carbd.service;
 
+import jakarta.transaction.Transactional;
 import lombok.RequiredArgsConstructor;
+import org.gus.carbd.dto.VehicleDto;
 import org.gus.carbd.entity.Person;
 import org.gus.carbd.entity.Vehicle;
 import org.gus.carbd.exception.ResourceNotFoundException;
+import org.gus.carbd.mapper.VehicleDtoMapper;
 import org.gus.carbd.repository.VehicleRepository;
 import org.springframework.stereotype.Service;
 
@@ -16,6 +19,8 @@ import java.util.Set;
 @RequiredArgsConstructor
 public class VehicleService {
     public final VehicleRepository vehicleRepository;
+
+    private final VehicleDtoMapper vehicleDtoMapper;
 
     public List<Vehicle> getVehiclesList() {
         return vehicleRepository.findAll();
@@ -33,34 +38,17 @@ public class VehicleService {
         return vehicle;
     }
 
-    public void addVehicle(Vehicle vehicle) {
-        vehicleRepository.save(vehicle);
+    public void addVehicle(VehicleDto vehicleDto) {
+        vehicleRepository.save(vehicleDtoMapper.toVehicle(vehicleDto));
     }
 
-    public void deleteVehicleById(int vin) {
+    public void deleteVehicleByVin(int vin) {
         vehicleRepository.deleteById(vin);
     }
 
-    public void editVehicleByVin(int vin, Vehicle changedVehicle) {
-        Vehicle vehicle = getVehicleByVin(vin);
-
-        if (changedVehicle.getBrand() != null) {
-            vehicle.setBrand(changedVehicle.getBrand());
-        }
-
-        if (changedVehicle.getModel() != null) {
-            vehicle.setModel(changedVehicle.getModel());
-        }
-
-        if (changedVehicle.getYear() != null) {
-            vehicle.setYear(changedVehicle.getYear());
-        }
-
-        if (changedVehicle.getPeople() != null) {
-            vehicle.setPeople(vehicle.getPeople());
-        }
-
-        vehicleRepository.save(vehicle);
+    @Transactional
+    public void editVehicleByVin(int vin, VehicleDto changedVehicleDto) {
+        vehicleDtoMapper.updateVehicle(getVehicleByVin(vin), changedVehicleDto);
     }
 
     public Set<Person> getVehicleOwners(int vin) {
@@ -70,9 +58,11 @@ public class VehicleService {
     }
 
     public List<String> getVehicleOwnersPassports(int vin) {
-        Vehicle vehicle = getVehicleByVin(vin);
+        var peopleSet = getVehicleOwners(vin);
+        if (peopleSet == null || peopleSet.isEmpty()) {
+            throw new RuntimeException("There is no owners for vehicle with vin - " + vin);
+        }
         List<String> passportList = new ArrayList<>();
-        var peopleSet = vehicle.getPeople();
         for (Person person : peopleSet) {
             passportList.add(person.getPassport());
         }
