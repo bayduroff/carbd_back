@@ -5,7 +5,7 @@ import org.gus.carbd.dto.PersonDTO;
 import org.gus.carbd.dto.VehicleDTO;
 import org.gus.carbd.entity.Person;
 import org.gus.carbd.entity.Vehicle;
-import org.gus.carbd.mapper.PersonDTOMapper;
+import org.gus.carbd.mapper.PersonDtoMapper;
 import org.gus.carbd.mapper.VehicleDTOMapper;
 import org.gus.carbd.service.PersonService;
 import org.springframework.web.bind.annotation.DeleteMapping;
@@ -26,27 +26,29 @@ import java.util.stream.Collectors;
 @RequestMapping(value = "/people")
 //http://localhost:8080/people
 
+// ToDO: прописать методы маппинга для сетов в маппере Vehicle
+
 public class PeopleController {
 
     public final PersonService personService;
-    public final PersonDTOMapper personDTOMapper;
+    public final PersonDtoMapper personDTOMapper;
     public final VehicleDTOMapper vehicleDTOMapper;
 
     @GetMapping()
     public List<PersonDTO> getPeopleList() {
         List<Person> peopleList = personService.getPeopleList();
-        return peopleList.stream().map(personDTOMapper::toPersonDTO).collect(Collectors.toList());
+        return personDTOMapper.toPersonDtoList(peopleList);
     }
 
     @GetMapping("/{id}")
     public PersonDTO getPersonById(@PathVariable("id") int id) {
         Person person = personService.getPersonById(id);
-        return personDTOMapper.toPersonDTO(person);
+        return personDTOMapper.toPersonDto(person);
     }
 
     @PostMapping("/add")
-    public void addPerson(@RequestBody Person person) {
-        personService.addPerson(person);
+    public void addPerson(@RequestBody PersonDTO personDTO) {
+        personService.addPerson(personDTO);
     }
 
     @DeleteMapping("/{id}")
@@ -55,7 +57,7 @@ public class PeopleController {
     }
 
     @PatchMapping("/{id}/edit")
-    public void editPersonById(@PathVariable("id") int id, @RequestBody Person changedPerson) {
+    public void editPersonById(@PathVariable("id") int id, @RequestBody PersonDTO changedPerson) {
         personService.editPersonById(id, changedPerson);
     }
 
@@ -66,28 +68,26 @@ public class PeopleController {
     }
 
     @PostMapping("/{id}/vehicles/{vin}")
-    public void assignVehicleToPerson(@PathVariable("id") int id,
-                                      @PathVariable("vin") int vin) {
-        personService.assignVehicleToPerson(id, vin);
+    public void updatePersonAssignVehicle(@PathVariable("id") int id,
+                                          @PathVariable("vin") int vin) {
+        personService.updatePersonAssignVehicle(id, vin);
     }
 
     @PatchMapping("/{id}/vehicles/{vin}")
-    public void unAssignVehicleFromPerson(@PathVariable("id") int id,
-                                          @PathVariable("vin") int vin) {
-        personService.unAssignVehicleFromPerson(id, vin);
+    public void updatePersonUnAssignVehicle(@PathVariable("id") int id,
+                                            @PathVariable("vin") int vin) {
+        personService.updatePersonUnAssignVehicle(id, vin);
     }
 
     @GetMapping("/search/{passport}")
-    public PersonDTO getPersonByPassport(@PathVariable("passport") String passport) throws Exception {
+    public PersonDTO getPersonByPassport(@PathVariable("passport") String passport) {
         Person person = personService.getPersonByPassport(passport);
-        return personDTOMapper.toPersonDTO(person);
+        return personDTOMapper.toPersonDto(person);
     }
 
     @GetMapping("/search/{passport}/vehicles")
-    public Set<VehicleDTO> getPersonVehiclesByPassport(@PathVariable("passport") String passport) throws Exception {
+    public Set<VehicleDTO> getPersonVehiclesByPassport(@PathVariable("passport") String passport) {
         Set<Vehicle> vehicleSet = personService.getPersonVehiclesByPassport(passport);
         return vehicleSet.stream().map(vehicleDTOMapper::toVehicleDTO).collect(Collectors.toSet());
     }
-
-
 }

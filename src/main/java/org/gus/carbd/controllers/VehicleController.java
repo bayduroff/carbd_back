@@ -5,7 +5,7 @@ import org.gus.carbd.dto.PersonDTO;
 import org.gus.carbd.dto.VehicleDTO;
 import org.gus.carbd.entity.Person;
 import org.gus.carbd.entity.Vehicle;
-import org.gus.carbd.mapper.PersonDTOMapper;
+import org.gus.carbd.mapper.PersonDtoMapper;
 import org.gus.carbd.mapper.VehicleDTOMapper;
 import org.gus.carbd.service.VehicleService;
 import org.springframework.web.bind.annotation.DeleteMapping;
@@ -30,7 +30,7 @@ public class VehicleController {
 
     public final VehicleService vehicleService;
     public final VehicleDTOMapper vehicleDTOMapper;
-    public final PersonDTOMapper personDTOMapper;
+    public final PersonDtoMapper personDTOMapper;
 
     @GetMapping()
     public List<VehicleDTO> getVehiclesList() {
@@ -62,7 +62,7 @@ public class VehicleController {
     @GetMapping("/{vin}/people")
     public Set<PersonDTO> getVehicleOwners(@PathVariable("vin") int vin) {
         Set<Person> personSet = vehicleService.getVehicleOwners(vin);
-        return personSet.stream().map(personDTOMapper::toPersonDTO).collect(Collectors.toSet());
+        return personSet.stream().map(personDTOMapper::toPersonDto).collect(Collectors.toSet());
     }
 
     @GetMapping("/{vin}/peoplepass")

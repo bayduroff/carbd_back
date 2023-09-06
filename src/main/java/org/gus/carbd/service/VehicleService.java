@@ -1,10 +1,10 @@
 package org.gus.carbd.service;
 
+import lombok.RequiredArgsConstructor;
 import org.gus.carbd.entity.Person;
 import org.gus.carbd.entity.Vehicle;
 import org.gus.carbd.exception.ResourceNotFoundException;
 import org.gus.carbd.repository.VehicleRepository;
-import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 
 import java.util.ArrayList;
@@ -13,10 +13,9 @@ import java.util.Optional;
 import java.util.Set;
 
 @Service
+@RequiredArgsConstructor
 public class VehicleService {
-    @Autowired
-    //@Qualifier("personRepository")
-    private VehicleRepository vehicleRepository;
+    public final VehicleRepository vehicleRepository;
 
     public List<Vehicle> getVehiclesList() {
         return vehicleRepository.findAll();
@@ -27,7 +26,9 @@ public class VehicleService {
         Vehicle vehicle;
         if (result.isPresent()) {
             vehicle = result.get();
-        } else throw new ResourceNotFoundException("Did not find vehicle vin - " + vin);
+        } else {
+            throw new ResourceNotFoundException("Did not find vehicle vin - " + vin);
+        }
 
         return vehicle;
     }
@@ -41,11 +42,7 @@ public class VehicleService {
     }
 
     public void editVehicleByVin(int vin, Vehicle changedVehicle) {
-        Optional<Vehicle> result = vehicleRepository.findById(vin);
-        Vehicle vehicle;
-        if (result.isPresent()) {
-            vehicle = result.get();
-        } else throw new ResourceNotFoundException("Did not find vehicle vin - " + vin);
+        Vehicle vehicle = getVehicleByVin(vin);
 
         if (changedVehicle.getBrand() != null) {
             vehicle.setBrand(changedVehicle.getBrand());
@@ -67,27 +64,19 @@ public class VehicleService {
     }
 
     public Set<Person> getVehicleOwners(int vin) {
-        Optional<Vehicle> result = vehicleRepository.findById(vin);
-        Vehicle vehicle;
-        if (result.isPresent()) {
-            vehicle = result.get();
-        } else throw new ResourceNotFoundException("Did not find vehicle vin - " + vin);
+        Vehicle vehicle = getVehicleByVin(vin);
 
         return vehicle.getPeople();
     }
 
     public List<String> getVehicleOwnersPassports(int vin) {
-        Optional<Vehicle> result = vehicleRepository.findById(vin);
-        Vehicle vehicle;
-        if (result.isPresent()) {
-            vehicle = result.get();
-        } else throw new ResourceNotFoundException("Did not find vehicle vin - " + vin);
-
+        Vehicle vehicle = getVehicleByVin(vin);
         List<String> passportList = new ArrayList<>();
         var peopleSet = vehicle.getPeople();
         for (Person person : peopleSet) {
             passportList.add(person.getPassport());
         }
+
         return passportList;
     }
 }

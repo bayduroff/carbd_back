@@ -1,18 +1,15 @@
 package org.gus.carbd.dto;
 
 import lombok.AllArgsConstructor;
-import lombok.Getter;
+import lombok.Data;
 import lombok.NoArgsConstructor;
-import lombok.Setter;
-import lombok.ToString;
 import org.gus.carbd.entity.Vehicle;
 
 import java.util.Set;
-@Getter
-@Setter
-@NoArgsConstructor
+
+@Data
 @AllArgsConstructor
-@ToString
+@NoArgsConstructor
 public class PersonDTO {
     private Integer id;
     private String passport;
