@@ -14,10 +14,11 @@ public interface PersonDtoMapper {
 
     PersonDto toPersonDto(Person person);
 
-    List<PersonDto> toPersonDtoList(List<Person> people);
-    Set<PersonDto> toPersonDtoSet(Set<Person> people);
-
     Person toPerson(PersonDto personDTO);
+
+    List<PersonDto> toPersonDtoList(List<Person> people);
+
+    Set<PersonDto> toPersonDtoSet(Set<Person> people);
 
     //не обращаться к trans методу изнутри PersonDtoMapper
     void updatePerson(@MappingTarget Person person, PersonDto changedPersonDto);

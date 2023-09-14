@@ -1,6 +1,5 @@
 package org.gus.carbd.mapper;
 
-import org.gus.carbd.dto.PersonDto;
 import org.gus.carbd.dto.VehicleDto;
 import org.gus.carbd.entity.Vehicle;
 import org.mapstruct.Mapper;
@@ -13,8 +12,9 @@ import java.util.Set;
 @Mapper(componentModel = "spring", nullValuePropertyMappingStrategy = NullValuePropertyMappingStrategy.IGNORE)
 public interface VehicleDtoMapper {
 
-    Vehicle toVehicle(VehicleDto vehicleDto);
     VehicleDto toVehicleDto(Vehicle vehicle);
+
+    Vehicle toVehicle(VehicleDto vehicleDto);
 
     List<VehicleDto> toVehicleDtoList(List<Vehicle> vehicles);
 
