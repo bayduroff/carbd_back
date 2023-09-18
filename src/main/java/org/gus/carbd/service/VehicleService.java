@@ -2,10 +2,12 @@ package org.gus.carbd.service;
 
 import jakarta.transaction.Transactional;
 import lombok.RequiredArgsConstructor;
+import org.gus.carbd.dto.PassportDto;
 import org.gus.carbd.dto.VehicleDto;
 import org.gus.carbd.entity.Person;
 import org.gus.carbd.entity.Vehicle;
 import org.gus.carbd.exception.ResourceNotFoundException;
+import org.gus.carbd.mapper.PassportDtoMapper;
 import org.gus.carbd.mapper.VehicleDtoMapper;
 import org.gus.carbd.repository.VehicleRepository;
 import org.springframework.stereotype.Service;
@@ -21,6 +23,8 @@ public class VehicleService {
     public final VehicleRepository vehicleRepository;
 
     private final VehicleDtoMapper vehicleDtoMapper;
+
+    private final PassportDtoMapper passportDtoMapper;
 
     public List<Vehicle> getVehiclesList() {
         return vehicleRepository.findAll();
@@ -57,14 +61,15 @@ public class VehicleService {
         return vehicle.getPeople();
     }
 
-    public List<String> getVehicleOwnersPassports(int vin) {
+    public List<PassportDto> getVehicleOwnersPassports(int vin) {
         var peopleSet = getVehicleOwners(vin);
         if (peopleSet == null || peopleSet.isEmpty()) {
             throw new RuntimeException("There is no owners for vehicle with vin - " + vin);
         }
-        List<String> passportList = new ArrayList<>();
+        List<PassportDto> passportList = new ArrayList<>();
         for (Person person : peopleSet) {
-            passportList.add(person.getPassport());
+            var passport = passportDtoMapper.toPassportDto(person.getPassport());
+            passportList.add(passport);
         }
 
         return passportList;

@@ -15,8 +15,6 @@ import java.util.List;
 import java.util.Optional;
 import java.util.Set;
 
-// ToDo: имеет ли смысл писать тесты на методы из репы
-
 @Service
 @RequiredArgsConstructor
 public class PersonService {
@@ -41,12 +39,13 @@ public class PersonService {
         return person;
     }
 
-    public void addPerson(PersonDto personDTO) {
-        if (personRepository.existsByPassport(personDTO.getPassport())) {
-            throw new RuntimeException("Person with passport: " + personDTO.getPassport() + " already exists");
+    public void addPerson(PersonDto personDto) {
+        if (personWithPassportExistsInBase(personDto)) {
+            throw new RuntimeException("Person with passport: " + personDto.getPassportDto().getSeries()
+                    + " " + personDto.getPassportDto().getNumber() + " already exists");
         }
 
-        personRepository.save(personDtoMapper.toPerson(personDTO));
+        personRepository.save(personDtoMapper.toPerson(personDto));
     }
 
     public void deletePersonById(int id) {
@@ -55,8 +54,9 @@ public class PersonService {
 
     @Transactional
     public void editPersonById(int id, PersonDto changedPersonDto) {
-        if (personRepository.existsByPassport(changedPersonDto.getPassport())) {
-            throw new RuntimeException("Person with passport: " + changedPersonDto.getPassport() + " already exists");
+        if (personWithPassportExistsInBase(changedPersonDto)) {
+            throw new RuntimeException("Person with passport: " + changedPersonDto.getPassportDto().getSeries()
+                    + " " + changedPersonDto.getPassportDto().getNumber() + " already exists");
         }
 
         personDtoMapper.updatePerson(getPersonById(id), changedPersonDto);
@@ -93,21 +93,27 @@ public class PersonService {
         return person.getVehicles();
     }
 
-    public Person getPersonByPassport(String passport) {
-        Optional<Person> resultPerson = personRepository.findByPassport(passport);
+    public Person getPersonByPassport(String series, String number) {
+        Optional<Person> resultPerson = personRepository.findPersonByPassportSeriesAndPassportNumber(series, number);
         Person person;
         if (resultPerson.isPresent()) {
             person = resultPerson.get();
         } else {
-            throw new ResourceNotFoundException("Did not find person with passport - " + passport);
+            throw new ResourceNotFoundException("Did not find person with passport - " + "s:" + series + ", n:" + number);
         }
 
         return person;
     }
 
-    public Set<Vehicle> getPersonVehiclesByPassport(String passport) {
-        Person person = getPersonByPassport(passport);
+    public Set<Vehicle> getPersonVehiclesByPassport(String series, String number) {
+        Person person = getPersonByPassport(series, number);
 
         return person.getVehicles();
+    }
+
+    private boolean personWithPassportExistsInBase(PersonDto personDto) {
+        return personDto.getPassportDto() != null &&
+                personRepository.existsByPassportSeriesAndPassportNumber(personDto.getPassportDto().getSeries(),
+                        personDto.getPassportDto().getNumber());
     }
 }

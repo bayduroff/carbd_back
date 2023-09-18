@@ -8,10 +8,10 @@ import org.mockito.Mock;
 import org.mockito.junit.jupiter.MockitoExtension;
 
 @ExtendWith(MockitoExtension.class)
-class PeopleControllerTest {
+class PersonControllerTest {
 
     @InjectMocks
-    private PeopleController peopleController;
+    private PersonController personController;
 
     @Mock
     private PersonRepository personRepositoryMock;

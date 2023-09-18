@@ -1,9 +1,12 @@
 package org.gus.carbd.service;
 
+import org.gus.carbd.dto.PassportDto;
 import org.gus.carbd.dto.VehicleDto;
+import org.gus.carbd.entity.Passport;
 import org.gus.carbd.entity.Person;
 import org.gus.carbd.entity.Vehicle;
 import org.gus.carbd.exception.ResourceNotFoundException;
+import org.gus.carbd.mapper.PassportDtoMapperImpl;
 import org.gus.carbd.mapper.VehicleDtoMapperImpl;
 import org.gus.carbd.repository.VehicleRepository;
 import org.junit.jupiter.api.Test;
@@ -38,6 +41,9 @@ class VehicleServiceTest {
 
     @Mock(answer = Answers.CALLS_REAL_METHODS)
     private VehicleDtoMapperImpl vehicleDtoMapperImplMock;
+
+    @Mock(answer = Answers.CALLS_REAL_METHODS)
+    private PassportDtoMapperImpl passportDtoMapperMock;
 
     @Test
     void getVehiclesListTest() {
@@ -138,16 +144,29 @@ class VehicleServiceTest {
 
     @Test
     void getVehicleOwnersPassportsPositiveTest() {
+        Passport passport1 = new Passport();
+        passport1.setNumber("123");
+        passport1.setSeries("456");
+        Passport passport2 = new Passport();
+        passport2.setNumber("789");
+        passport2.setSeries("098");
+
         Person person1 = new Person();
-        person1.setPassport("1357");
+        person1.setId(1);
+        person1.setPassport(passport1);
         Person person2 = new Person();
-        person2.setPassport("2468");
+        person2.setId(2);
+        person2.setPassport(passport2);
+
         HashSet<Person> people = new HashSet<>();
         people.add(person1);
         people.add(person2);
         Vehicle vehicle = new Vehicle();
         vehicle.setPeople(people);
-        List<String> expectedResult = List.of("1357", "2468");
+
+
+        List<PassportDto> expectedResult = List.of(passportDtoMapperMock.toPassportDto(passport1),
+                passportDtoMapperMock.toPassportDto(passport2));
 
         doReturn(Optional.of(vehicle)).when(vehicleRepositoryMock).findById(any());
         assertEquals(expectedResult, vehicleService.getVehicleOwnersPassports(1));

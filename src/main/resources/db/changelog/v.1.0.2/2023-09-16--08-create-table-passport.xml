@@ -1,0 +1,20 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<databaseChangeLog
+        xmlns="http://www.liquibase.org/xml/ns/dbchangelog"
+        xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+        xsi:schemaLocation="http://www.liquibase.org/xml/ns/dbchangelog http://www.liquibase.org/xml/ns/dbchangelog/dbchangelog-4.6.xsd">
+
+    <changeSet id="2023-09-16--08-create-table-passport" author="bayduroff">
+        <createTable tableName="passport">
+            <column name="passport_id" type="serial4" autoIncrement="true">
+                <constraints nullable="false" primaryKey="true"/>
+            </column>
+            <column name="series" type="varchar"/>
+            <column name="number" type="varchar"/>
+            <column name="person_id" type="int">
+                <constraints nullable="false" foreignKeyName="person_id" references="person(id)"/>
+            </column>
+        </createTable>
+    </changeSet>
+
+</databaseChangeLog>

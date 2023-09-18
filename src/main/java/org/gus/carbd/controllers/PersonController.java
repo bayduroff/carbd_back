@@ -25,7 +25,7 @@ import java.util.Set;
 @RequestMapping(value = "/people")
 //http://localhost:8080/people
 
-public class PeopleController {
+public class PersonController {
 
     public final PersonService personService;
     public final PersonDtoMapper personDTOMapper;
@@ -76,15 +76,17 @@ public class PeopleController {
         personService.updatePersonUnAssignVehicle(id, vin);
     }
 
-    @GetMapping("/search/{passport}")
-    public PersonDto getPersonByPassport(@PathVariable("passport") String passport) {
-        Person person = personService.getPersonByPassport(passport);
+    @GetMapping("/search/{series},{number}")
+    public PersonDto getPersonByPassport(@PathVariable("series") String series,
+                                         @PathVariable("number") String number) {
+        Person person = personService.getPersonByPassport(series, number);
         return personDTOMapper.toPersonDto(person);
     }
 
-    @GetMapping("/search/{passport}/vehicles")
-    public Set<VehicleDto> getPersonVehiclesByPassport(@PathVariable("passport") String passport) {
-        Set<Vehicle> vehicleSet = personService.getPersonVehiclesByPassport(passport);
+    @GetMapping("/search/{series},{number}/vehicles")
+    public Set<VehicleDto> getPersonVehiclesByPassport(@PathVariable("series") String series,
+                                                       @PathVariable("number") String number) {
+        Set<Vehicle> vehicleSet = personService.getPersonVehiclesByPassport(series, number);
         return vehicleDTOMapper.toVehicleDtoSet(vehicleSet);
     }
 }

@@ -6,7 +6,7 @@ import org.springframework.data.jpa.repository.JpaRepository;
 import java.util.Optional;
 
 public interface PersonRepository extends JpaRepository<Person, Integer> {
-    Optional<Person> findByPassport(String passport);
+    Optional<Person> findPersonByPassportSeriesAndPassportNumber(String series, String number);
 
-    boolean existsByPassport (String passport);
+    boolean existsByPassportSeriesAndPassportNumber(String series, String number);
 }
