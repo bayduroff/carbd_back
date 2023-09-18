@@ -39,7 +39,6 @@ public class Vehicle {
     private Integer year;
 
     @ManyToMany(mappedBy = "vehicles")
-    //@JsonManagedReference
     @JsonBackReference
     private Set<Person> people;
 

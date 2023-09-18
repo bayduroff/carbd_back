@@ -15,6 +15,5 @@ public interface PassportDtoMapper {
 
     Passport toPassport(PassportDto passportDto);
 
-    //@Mapping(target = "passport", source = "passportDto")
     void updatePassport(@MappingTarget Passport passport, PassportDto changedPassportDto);
 }

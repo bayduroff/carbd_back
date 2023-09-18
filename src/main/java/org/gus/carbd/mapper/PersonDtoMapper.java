@@ -31,7 +31,6 @@ public interface PersonDtoMapper {
         person.getPassport().setPerson(person);
     }
 
-    //не обращаться к trans методу изнутри PersonDtoMapper
     @Mapping(target = "passport", source = "passportDto")
     void updatePerson(@MappingTarget Person person, PersonDto changedPersonDto);
 }

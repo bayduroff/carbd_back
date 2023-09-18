@@ -22,6 +22,5 @@ public interface VehicleDtoMapper {
 
     Set<VehicleDto> toVehicleDtoSet(Set<Vehicle> vehicles);
 
-    //не обращаться к trans методу изнутри PersonDtoMapper
     void updateVehicle(@MappingTarget Vehicle vehicle, VehicleDto changedVehicleDto);
 }
