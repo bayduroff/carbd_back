@@ -365,7 +365,7 @@ class PersonServiceTest {
 
         var exception = assertThrows(ResourceNotFoundException.class,
                 () -> personService.getPersonByPassport("123", "456"));
-        assertEquals("Did not find person with passport - s:123, n:456", exception.getMessage());
+        assertEquals("Did not find person with passport - 123456", exception.getMessage());
     }
 
     @Test
@@ -389,7 +389,7 @@ class PersonServiceTest {
 
         var exception = assertThrows(ResourceNotFoundException.class,
                 () -> personService.getPersonVehiclesByPassport("123", "456"));
-        assertEquals("Did not find person with passport - s:123, n:456", exception.getMessage());
+        assertEquals("Did not find person with passport - 123456", exception.getMessage());
 
     }
 }

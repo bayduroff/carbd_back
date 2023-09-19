@@ -15,12 +15,14 @@ import jakarta.persistence.Table;
 import lombok.AllArgsConstructor;
 import lombok.Data;
 import lombok.NoArgsConstructor;
+import lombok.ToString;
 
 import java.util.Set;
 
 @Data
 @AllArgsConstructor
 @NoArgsConstructor
+@ToString
 @Entity
 @Table(name = "person")
 public class Person {
@@ -39,9 +41,11 @@ public class Person {
     @Column(name = "patronymic")
     private String patronymic;
 
+    @ToString.Exclude
     @OneToOne(mappedBy = "person", cascade = CascadeType.ALL)
     private Passport passport;
 
+    @ToString.Exclude
     @ManyToMany
     @JoinTable(
             name = "person_vehicle",

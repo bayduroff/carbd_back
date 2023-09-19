@@ -42,7 +42,7 @@ public class PersonService {
     public void addPerson(PersonDto personDto) {
         if (personWithPassportExistsInBase(personDto)) {
             throw new RuntimeException("Person with passport: " + personDto.getPassportDto().getSeries()
-                    + " " + personDto.getPassportDto().getNumber() + " already exists");
+                    + personDto.getPassportDto().getNumber() + " already exists");
         }
 
         personRepository.save(personDtoMapper.toPerson(personDto));
@@ -56,7 +56,7 @@ public class PersonService {
     public void editPersonById(int id, PersonDto changedPersonDto) {
         if (personWithPassportExistsInBase(changedPersonDto)) {
             throw new RuntimeException("Person with passport: " + changedPersonDto.getPassportDto().getSeries()
-                    + " " + changedPersonDto.getPassportDto().getNumber() + " already exists");
+                    + changedPersonDto.getPassportDto().getNumber() + " already exists");
         }
 
         personDtoMapper.updatePerson(getPersonById(id), changedPersonDto);
@@ -99,7 +99,7 @@ public class PersonService {
         if (resultPerson.isPresent()) {
             person = resultPerson.get();
         } else {
-            throw new ResourceNotFoundException("Did not find person with passport - " + "s:" + series + ", n:" + number);
+            throw new ResourceNotFoundException("Did not find person with passport - " + series + number);
         }
 
         return person;

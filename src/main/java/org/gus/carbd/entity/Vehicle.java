@@ -38,6 +38,7 @@ public class Vehicle {
     @Column(name = "year")
     private Integer year;
 
+    @ToString.Exclude
     @ManyToMany(mappedBy = "vehicles")
     @JsonBackReference
     private Set<Person> people;

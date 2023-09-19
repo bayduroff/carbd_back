@@ -1,0 +1,16 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<databaseChangeLog
+        xmlns="http://www.liquibase.org/xml/ns/dbchangelog"
+        xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+        xsi:schemaLocation="http://www.liquibase.org/xml/ns/dbchangelog http://www.liquibase.org/xml/ns/dbchangelog/dbchangelog-4.6.xsd">
+
+    <changeSet id="2023-09-18--11-change-number-of-characters-in-passport-columns" author="bayduroff">
+        <modifyDataType tableName="passport"
+                        columnName="series"
+                        newDataType="varchar(4)"/>
+        <modifyDataType tableName="passport"
+                        columnName="number"
+                        newDataType="varchar(6)"/>
+    </changeSet>
+
+</databaseChangeLog>
