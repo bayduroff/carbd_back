@@ -15,6 +15,7 @@ import org.springframework.web.bind.annotation.PathVariable;
 import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RequestMapping;
+import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.bind.annotation.RestController;
 
 import java.util.List;
@@ -25,7 +26,7 @@ import java.util.Set;
 @RequestMapping(value = "/people")
 //http://localhost:8080/people
 
-public class PeopleController {
+public class PersonController {
 
     public final PersonService personService;
     public final PersonDtoMapper personDTOMapper;
@@ -76,15 +77,17 @@ public class PeopleController {
         personService.updatePersonUnAssignVehicle(id, vin);
     }
 
-    @GetMapping("/search/{passport}")
-    public PersonDto getPersonByPassport(@PathVariable("passport") String passport) {
-        Person person = personService.getPersonByPassport(passport);
+    @GetMapping("/search")
+    public PersonDto getPersonByPassport(@RequestParam String series,
+                                         @RequestParam String number) {
+        Person person = personService.getPersonByPassport(series, number);
         return personDTOMapper.toPersonDto(person);
     }
 
-    @GetMapping("/search/{passport}/vehicles")
-    public Set<VehicleDto> getPersonVehiclesByPassport(@PathVariable("passport") String passport) {
-        Set<Vehicle> vehicleSet = personService.getPersonVehiclesByPassport(passport);
+    @GetMapping("/search/vehicles")
+    public Set<VehicleDto> getPersonVehiclesByPassport(@RequestParam String series,
+                                                       @RequestParam String number) {
+        Set<Vehicle> vehicleSet = personService.getPersonVehiclesByPassport(series, number);
         return vehicleDTOMapper.toVehicleDtoSet(vehicleSet);
     }
 }

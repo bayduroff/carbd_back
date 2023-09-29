@@ -1,6 +1,7 @@
 package org.gus.carbd.controllers;
 
 import lombok.RequiredArgsConstructor;
+import org.gus.carbd.dto.PassportDto;
 import org.gus.carbd.dto.PersonDto;
 import org.gus.carbd.dto.VehicleDto;
 import org.gus.carbd.entity.Person;
@@ -65,7 +66,7 @@ public class VehicleController {
     }
 
     @GetMapping("/{vin}/peoplepass")
-    public List<String> getVehicleOwnersPassports(@PathVariable("vin") int vin) {
+    public List<PassportDto> getVehicleOwnersPassports(@PathVariable("vin") int vin) {
         return vehicleService.getVehicleOwnersPassports(vin);
     }
 }

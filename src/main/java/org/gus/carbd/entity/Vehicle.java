@@ -38,8 +38,30 @@ public class Vehicle {
     @Column(name = "year")
     private Integer year;
 
+    @ToString.Exclude
     @ManyToMany(mappedBy = "vehicles")
-    //@JsonManagedReference
     @JsonBackReference
     private Set<Person> people;
+
+    @Override
+    public boolean equals(final Object o) {
+        if (o == null) return false;
+        if (o == this) return true;
+        if (!(o instanceof Vehicle)) return false;
+        final Vehicle other = (Vehicle) o;
+        if (!other.canEqual(this)) return false;
+        final Object this$vin = this.getVin();
+        final Object other$vin = other.getVin();
+        if (this$vin == null ? other$vin != null : !this$vin.equals(other$vin)) return false;
+        return true;
+    }
+
+    protected boolean canEqual(final Object other) {
+        return other instanceof Vehicle;
+    }
+
+    @Override
+    public int hashCode() {
+        return 59;
+    }
 }

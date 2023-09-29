@@ -1,0 +1,438 @@
+{
+  "info": {
+    "_postman_id": "de747d5e-9701-4105-9232-c8748222ee0f",
+    "name": "carbd_project",
+    "schema": "https://schema.getpostman.com/json/collection/v2.1.0/collection.json",
+    "_exporter_id": "27207014"
+  },
+  "item": [
+    {
+      "name": "PeopleController",
+      "item": [
+        {
+          "name": "getPeopleList",
+          "request": {
+            "method": "GET",
+            "header": [
+              {
+                "key": "",
+                "value": "",
+                "type": "text"
+              }
+            ],
+            "url": {
+              "raw": "http://localhost:8080/people",
+              "protocol": "http",
+              "host": [
+                "localhost"
+              ],
+              "port": "8080",
+              "path": [
+                "people"
+              ]
+            }
+          },
+          "response": []
+        },
+        {
+          "name": "getPesonById",
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": {
+              "raw": "http://localhost:8080/people/5",
+              "protocol": "http",
+              "host": [
+                "localhost"
+              ],
+              "port": "8080",
+              "path": [
+                "people",
+                "5"
+              ]
+            }
+          },
+          "response": []
+        },
+        {
+          "name": "addPerson",
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json",
+                "type": "text"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\r\n    \"passportDto\": {\r\n            \"series\": \"0000\",\r\n            \"number\": \"785634\"\r\n        },\r\n    \"name\": \"Test\",\r\n    \"surname\" : \"Testov\",\r\n    \"patronymic\": \"Testovich\"\r\n}"
+            },
+            "url": {
+              "raw": "http://localhost:8080/people/add",
+              "protocol": "http",
+              "host": [
+                "localhost"
+              ],
+              "port": "8080",
+              "path": [
+                "people",
+                "add"
+              ]
+            }
+          },
+          "response": []
+        },
+        {
+          "name": "deletePersonById",
+          "request": {
+            "method": "DELETE",
+            "header": [],
+            "url": {
+              "raw": "http://localhost:8080/people/4",
+              "protocol": "http",
+              "host": [
+                "localhost"
+              ],
+              "port": "8080",
+              "path": [
+                "people",
+                "4"
+              ]
+            }
+          },
+          "response": []
+        },
+        {
+          "name": "editPersonById",
+          "request": {
+            "method": "PATCH",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json",
+                "type": "text"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\r\n    \"surname\" : \"Dvatestov\",\r\n        \"passportDto\": {\r\n            \"series\": \"0002\",\r\n            \"number\": \"785634\"\r\n        }\r\n}"
+            },
+            "url": {
+              "raw": "http://localhost:8080/people/5/edit",
+              "protocol": "http",
+              "host": [
+                "localhost"
+              ],
+              "port": "8080",
+              "path": [
+                "people",
+                "5",
+                "edit"
+              ]
+            }
+          },
+          "response": []
+        },
+        {
+          "name": "getPersonVehiclesByPersonId",
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": {
+              "raw": "http://localhost:8080/people/2/vehicles",
+              "protocol": "http",
+              "host": [
+                "localhost"
+              ],
+              "port": "8080",
+              "path": [
+                "people",
+                "2",
+                "vehicles"
+              ]
+            }
+          },
+          "response": []
+        },
+        {
+          "name": "assignVehicleToPerson",
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json",
+                "type": "text"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": ""
+            },
+            "url": {
+              "raw": "http://localhost:8080/people/5/vehicles/2",
+              "protocol": "http",
+              "host": [
+                "localhost"
+              ],
+              "port": "8080",
+              "path": [
+                "people",
+                "5",
+                "vehicles",
+                "2"
+              ]
+            }
+          },
+          "response": []
+        },
+        {
+          "name": "unAssignVehicleFromPerson",
+          "request": {
+            "method": "PATCH",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json",
+                "type": "text"
+              }
+            ],
+            "url": {
+              "raw": "http://localhost:8080/people/5/vehicles/2",
+              "protocol": "http",
+              "host": [
+                "localhost"
+              ],
+              "port": "8080",
+              "path": [
+                "people",
+                "5",
+                "vehicles",
+                "2"
+              ]
+            }
+          },
+          "response": []
+        },
+        {
+          "name": "getPersonByPassport",
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": {
+              "raw": "http://localhost:8080/people/search/4321,098765",
+              "protocol": "http",
+              "host": [
+                "localhost"
+              ],
+              "port": "8080",
+              "path": [
+                "people",
+                "search",
+                "4321,098765"
+              ]
+            }
+          },
+          "response": []
+        },
+        {
+          "name": "getPersonVehiclesByPassport",
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": {
+              "raw": "http://localhost:8080/people/search/1234,567890/vehicles",
+              "protocol": "http",
+              "host": [
+                "localhost"
+              ],
+              "port": "8080",
+              "path": [
+                "people",
+                "search",
+                "1234,567890",
+                "vehicles"
+              ]
+            }
+          },
+          "response": []
+        }
+      ]
+    },
+    {
+      "name": "VehicleController",
+      "item": [
+        {
+          "name": "getVehiclesList",
+          "request": {
+            "method": "GET",
+            "header": [
+              {
+                "key": "",
+                "value": "",
+                "type": "text"
+              }
+            ],
+            "url": {
+              "raw": "http://localhost:8080/vehicles",
+              "protocol": "http",
+              "host": [
+                "localhost"
+              ],
+              "port": "8080",
+              "path": [
+                "vehicles"
+              ]
+            }
+          },
+          "response": []
+        },
+        {
+          "name": "getVehicleByVin",
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": {
+              "raw": "http://localhost:8080/vehicles/5",
+              "protocol": "http",
+              "host": [
+                "localhost"
+              ],
+              "port": "8080",
+              "path": [
+                "vehicles",
+                "5"
+              ]
+            }
+          },
+          "response": []
+        },
+        {
+          "name": "addVehicle",
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json",
+                "type": "text"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\r\n    \"brand\": \"CarBrandTest\",\r\n    \"model\": \"CarModelTest\",\r\n    \"year\" : 2023\r\n}"
+            },
+            "url": {
+              "raw": "http://localhost:8080/vehicles/add",
+              "protocol": "http",
+              "host": [
+                "localhost"
+              ],
+              "port": "8080",
+              "path": [
+                "vehicles",
+                "add"
+              ]
+            }
+          },
+          "response": []
+        },
+        {
+          "name": "deleteVehicleByVin",
+          "request": {
+            "method": "DELETE",
+            "header": [],
+            "url": {
+              "raw": "http://localhost:8080/vehicles/5",
+              "protocol": "http",
+              "host": [
+                "localhost"
+              ],
+              "port": "8080",
+              "path": [
+                "vehicles",
+                "5"
+              ]
+            }
+          },
+          "response": []
+        },
+        {
+          "name": "editVehicleByVin",
+          "request": {
+            "method": "PATCH",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json",
+                "type": "text"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\r\n    \"brand\" : \"PatchCarBrandTest\"\r\n}"
+            },
+            "url": {
+              "raw": "http://localhost:8080/vehicles/5/edit",
+              "protocol": "http",
+              "host": [
+                "localhost"
+              ],
+              "port": "8080",
+              "path": [
+                "vehicles",
+                "5",
+                "edit"
+              ]
+            }
+          },
+          "response": []
+        },
+        {
+          "name": "getVehicleOwners",
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": {
+              "raw": "http://localhost:8080/vehicles/1/people",
+              "protocol": "http",
+              "host": [
+                "localhost"
+              ],
+              "port": "8080",
+              "path": [
+                "vehicles",
+                "1",
+                "people"
+              ]
+            }
+          },
+          "response": []
+        },
+        {
+          "name": "getVehicleOwnersPassports",
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": {
+              "raw": "http://localhost:8080/vehicles/1/peoplepass",
+              "protocol": "http",
+              "host": [
+                "localhost"
+              ],
+              "port": "8080",
+              "path": [
+                "vehicles",
+                "1",
+                "peoplepass"
+              ]
+            }
+          },
+          "response": []
+        }
+      ]
+    }
+  ]
+}

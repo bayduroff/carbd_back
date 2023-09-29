@@ -12,7 +12,7 @@ import java.util.Set;
 @NoArgsConstructor
 public class PersonDto {
     private Integer id;
-    private String passport;
+    private PassportDto passportDto;
     private String name;
     private String surname;
     private String patronymic;
