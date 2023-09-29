@@ -1,0 +1,13 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<databaseChangeLog
+        xmlns="http://www.liquibase.org/xml/ns/dbchangelog"
+        xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+        xsi:schemaLocation="http://www.liquibase.org/xml/ns/dbchangelog http://www.liquibase.org/xml/ns/dbchangelog/dbchangelog-4.6.xsd">
+
+    <include file="2023-09-16--08-create-table-passport.xml" relativeToChangelogFile="true"/>
+    <include file="2023-09-16--09-passport-table-insert-data.xml" relativeToChangelogFile="true"/>
+    <include file="2023-09-16--10-drop-column-passport-in-table-person.xml" relativeToChangelogFile="true"/>
+    <include file="2023-09-18--11-change-number-of-characters-in-passport-columns.xml" relativeToChangelogFile="true"/>
+
+
+</databaseChangeLog>

@@ -1,6 +1,8 @@
 package org.gus.carbd.service;
 
+import org.gus.carbd.dto.PassportDto;
 import org.gus.carbd.dto.PersonDto;
+import org.gus.carbd.entity.Passport;
 import org.gus.carbd.entity.Person;
 import org.gus.carbd.entity.Vehicle;
 import org.gus.carbd.exception.ResourceNotFoundException;
@@ -25,6 +27,7 @@ import static org.junit.jupiter.api.Assertions.assertTrue;
 import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.ArgumentMatchers.anyInt;
 import static org.mockito.ArgumentMatchers.anyString;
+import static org.mockito.Mockito.doNothing;
 import static org.mockito.Mockito.doReturn;
 import static org.mockito.Mockito.doThrow;
 import static org.mockito.Mockito.never;
@@ -48,8 +51,8 @@ class PersonServiceTest {
     @Test
     void getPeopleListTest() {
         List<Person> people = new ArrayList<>();
-        Person person = new Person(1, "12345", "Test",
-                "Testov", "Testovich", null);
+        Person person = new Person(1, "Test",
+                "Testov", "Testovich", new Passport(), null);
         people.add(person);
 
         doReturn(people).when(personRepositoryMock).findAll();
@@ -59,8 +62,8 @@ class PersonServiceTest {
 
     @Test
     void getPersonByIdPositiveTest() {
-        Person person = new Person(1, "12345", "Test",
-                "Testov", "Testovich", null);
+        Person person = new Person(1, "Test",
+                "Testov", "Testovich", new Passport(), null);
         doReturn(Optional.of(person)).when(personRepositoryMock).findById(any());
 
         assertEquals(person, personService.getPersonById(1));
@@ -75,30 +78,61 @@ class PersonServiceTest {
 
     @Test
     void addPersonPositiveTest() {
-        ArgumentCaptor<String> passportCaptor = ArgumentCaptor.forClass(String.class);
+        ArgumentCaptor<String> stringCaptor = ArgumentCaptor.forClass(String.class);
         ArgumentCaptor<Person> personCaptor = ArgumentCaptor.forClass(Person.class);
-        PersonDto personDTO = new PersonDto();
-        personDTO.setPassport("12345");
-        personDTO.setName("Test");
+        PersonDto personDto = new PersonDto();
+        PassportDto passportDto = new PassportDto();
+        passportDto.setSeries("1111");
+        passportDto.setNumber("222222");
+        personDto.setPassportDto(passportDto);
+        Person person = new Person();
+        person.setName("Test");
 
-        doReturn(false).when(personRepositoryMock).existsByPassport(any());
+        doReturn(false).when(personRepositoryMock)
+                .existsByPassportSeriesAndPassportNumber(anyString(), anyString());
+        doReturn(person).when(personDtoMapperImplMock).toPerson(any(PersonDto.class));
 
-        personService.addPerson(personDTO);
-        verify(personRepositoryMock).existsByPassport(passportCaptor.capture());
-        assertEquals("12345", passportCaptor.getValue());
-        verify(personDtoMapperImplMock).toPerson(personDTO);
+        personService.addPerson(personDto);
+        verify(personRepositoryMock).existsByPassportSeriesAndPassportNumber(stringCaptor.capture(),
+                stringCaptor.capture());
+        var capturedArgs = stringCaptor.getAllValues();
+        assertEquals("1111", capturedArgs.get(0));
+        assertEquals("222222", capturedArgs.get(1));
         verify(personRepositoryMock).save(personCaptor.capture());
-        assertEquals("12345", personCaptor.getValue().getPassport());
         assertEquals("Test", personCaptor.getValue().getName());
     }
 
     @Test
-    void addPersonNegativeTest() {
-        doReturn(true).when(personRepositoryMock).existsByPassport(any());
+    void addPersonHasNoPassportTest() {
+        ArgumentCaptor<Person> personCaptor = ArgumentCaptor.forClass(Person.class);
+        PersonDto personDto = new PersonDto();
+        Person person = new Person();
+        person.setName("Test");
 
-        assertThrows(RuntimeException.class, () -> personService.addPerson(new PersonDto()));
+        doReturn(person).when(personDtoMapperImplMock).toPerson(any(PersonDto.class));
+
+        personService.addPerson(personDto);
+
+        verify(personRepositoryMock, never()).existsByPassportSeriesAndPassportNumber(anyString(), anyString());
+        verify(personRepositoryMock).save(personCaptor.capture());
+        assertEquals("Test", personCaptor.getValue().getName());
+    }
+
+    @Test
+    void addPersonPassportExistsInDbTest() {
+        PersonDto personDto = new PersonDto();
+        PassportDto passportDto = new PassportDto();
+        passportDto.setSeries("1111");
+        passportDto.setNumber("222222");
+        personDto.setPassportDto(passportDto);
+
+        doReturn(true).when(personRepositoryMock)
+                .existsByPassportSeriesAndPassportNumber(anyString(), anyString());
+
+        assertThrows(RuntimeException.class, () -> personService.addPerson(personDto));
         verify(personRepositoryMock, never()).save(any());
     }
+
 
     @Test
     void deletePersonByIdTest() {
@@ -111,21 +145,30 @@ class PersonServiceTest {
 
     @Test
     void editPersonByIdPositiveTest() {
+        ArgumentCaptor<Person> personCaptor = ArgumentCaptor.forClass(Person.class);
+        ArgumentCaptor<PersonDto> personDtoCaptor = ArgumentCaptor.forClass(PersonDto.class);
         PersonDto changedPersonDto = new PersonDto();
-        changedPersonDto.setPassport("54321");
+        PassportDto passportDto = new PassportDto();
+        passportDto.setSeries("1111");
+        passportDto.setNumber("222222");
+        changedPersonDto.setPassportDto(passportDto);
+
         Person person = new Person();
-        person.setPassport("12345");
         person.setName("Test");
 
+        doReturn(false).when(personRepositoryMock)
+                .existsByPassportSeriesAndPassportNumber(anyString(), anyString());
         doReturn(Optional.of(person)).when(personRepositoryMock).findById(any());
+        doNothing().when(personDtoMapperImplMock).updatePerson(any(), any());
 
         personService.editPersonById(1, changedPersonDto);
-        assertEquals("54321", person.getPassport());
-        assertEquals("Test", person.getName());
+        verify(personDtoMapperImplMock).updatePerson(personCaptor.capture(), personDtoCaptor.capture());
+        assertEquals(person, personCaptor.getValue());
+        assertEquals(changedPersonDto, personDtoCaptor.getValue());
     }
 
     @Test
-    void editPersonByIdNegativeTest() {
+    void editPersonByIdHasNoPassportNoPersonWithIdTest() {
         doReturn(Optional.empty()).when(personRepositoryMock).findById(any());
 
         assertThrows(ResourceNotFoundException.class, () -> personService.editPersonById(1, new PersonDto()));
@@ -133,10 +176,32 @@ class PersonServiceTest {
     }
 
     @Test
-    void editPersonByIdPassportExistsInDbTest() {
-        doReturn(true).when(personRepositoryMock).existsByPassport(any());
+    void editPersonByIdHasNoPassportFindPersonWithIdTest() {
+        ArgumentCaptor<Person> personCaptor = ArgumentCaptor.forClass(Person.class);
+        ArgumentCaptor<PersonDto> personDtoCaptor = ArgumentCaptor.forClass(PersonDto.class);
+        Person person = new Person();
+        person.setName("Test");
+        PersonDto personDto = new PersonDto();
+        personDto.setName("Test2");
 
-        assertThrows(RuntimeException.class, () -> personService.editPersonById(1, new PersonDto()));
+        doNothing().when(personDtoMapperImplMock).updatePerson(any(), any());
+        doReturn(Optional.of(person)).when(personRepositoryMock).findById(any());
+
+        personService.editPersonById(1, personDto);
+        verify(personDtoMapperImplMock).updatePerson(personCaptor.capture(), personDtoCaptor.capture());
+        assertEquals(person, personCaptor.getValue());
+        assertEquals(personDto, personDtoCaptor.getValue());
+    }
+
+    @Test
+    void editPersonByIdPassportExistsInDbTest() {
+        PersonDto changedPersonDto = new PersonDto();
+        changedPersonDto.setPassportDto(new PassportDto());
+
+        doReturn(true).when(personRepositoryMock)
+                .existsByPassportSeriesAndPassportNumber(any(), any());
+
+        assertThrows(RuntimeException.class, () -> personService.editPersonById(1, changedPersonDto));
         verify(personDtoMapperImplMock, never()).updatePerson(any(), any());
     }
 
@@ -167,8 +232,10 @@ class PersonServiceTest {
         ArgumentCaptor<Person> personCaptor = ArgumentCaptor.forClass(Person.class);
         Vehicle baseVehicle = new Vehicle();
         baseVehicle.setBrand("BMW");
+        baseVehicle.setVin(1);
         Vehicle assigningVehicle = new Vehicle();
         assigningVehicle.setBrand("Lada");
+        assigningVehicle.setVin(2);
         HashSet<Vehicle> vehicles = new HashSet<>();
         vehicles.add(baseVehicle);
         Person person = new Person();
@@ -240,8 +307,10 @@ class PersonServiceTest {
         ArgumentCaptor<Person> personCaptor = ArgumentCaptor.forClass(Person.class);
         Vehicle baseVehicle1 = new Vehicle();
         baseVehicle1.setBrand("BMW");
+        baseVehicle1.setVin(1);
         Vehicle baseVehicle2 = new Vehicle();
         baseVehicle2.setBrand("Lada");
+        baseVehicle2.setVin(2);
         HashSet<Vehicle> vehicles = new HashSet<>();
         vehicles.add(baseVehicle1);
         vehicles.add(baseVehicle2);
@@ -284,19 +353,19 @@ class PersonServiceTest {
         Person person = new Person();
         person.setName("Test");
 
-        doReturn(Optional.of(person)).when(personRepositoryMock).findByPassport(anyString());
+        doReturn(Optional.of(person)).when(personRepositoryMock).findPersonByPassportSeriesAndPassportNumber(anyString(), anyString());
 
-        var result = personService.getPersonByPassport("123");
+        var result = personService.getPersonByPassport("123", "456");
         assertEquals(person, result);
     }
 
     @Test
     void getPersonByPassportNegativeTest() {
-        doReturn(Optional.empty()).when(personRepositoryMock).findByPassport(anyString());
+        doReturn(Optional.empty()).when(personRepositoryMock).findPersonByPassportSeriesAndPassportNumber(anyString(), anyString());
 
         var exception = assertThrows(ResourceNotFoundException.class,
-                () -> personService.getPersonByPassport("123"));
-        assertEquals("Did not find person with passport - 123", exception.getMessage());
+                () -> personService.getPersonByPassport("123", "456"));
+        assertEquals("Did not find person with passport - 123456", exception.getMessage());
     }
 
     @Test
@@ -308,18 +377,19 @@ class PersonServiceTest {
         Person person = new Person();
         person.setVehicles(vehicles);
 
-        doReturn(Optional.of(person)).when(personRepositoryMock).findByPassport(anyString());
+        doReturn(Optional.of(person)).when(personRepositoryMock).findPersonByPassportSeriesAndPassportNumber(anyString(), anyString());
 
-        var result = personService.getPersonVehiclesByPassport("123");
+        var result = personService.getPersonVehiclesByPassport("123", "456");
         assertEquals(vehicles, result);
     }
 
     @Test
     void getPersonVehiclesByPassportNegativeTest() {
-        doReturn(Optional.empty()).when(personRepositoryMock).findByPassport(anyString());
+        doReturn(Optional.empty()).when(personRepositoryMock).findPersonByPassportSeriesAndPassportNumber(anyString(), anyString());
 
         var exception = assertThrows(ResourceNotFoundException.class,
-                () -> personService.getPersonVehiclesByPassport("123"));
-        assertEquals("Did not find person with passport - 123", exception.getMessage());
+                () -> personService.getPersonVehiclesByPassport("123", "456"));
+        assertEquals("Did not find person with passport - 123456", exception.getMessage());
+
     }
 }
