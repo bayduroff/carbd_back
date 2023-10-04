@@ -1,11 +1,14 @@
 package org.gus.carbd.mapper;
 
+import org.gus.carbd.dto.PassportDto;
 import org.gus.carbd.dto.PersonDto;
+import org.gus.carbd.entity.Passport;
 import org.gus.carbd.entity.Person;
 import org.gus.carbd.entity.Vehicle;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
 import org.mockito.InjectMocks;
+import org.mockito.Mock;
 import org.mockito.junit.jupiter.MockitoExtension;
 
 import java.util.Collections;
@@ -15,7 +18,12 @@ import java.util.List;
 import java.util.Set;
 
 import static org.junit.jupiter.api.Assertions.assertEquals;
+import static org.junit.jupiter.api.Assertions.assertNotNull;
 import static org.junit.jupiter.api.Assertions.assertNull;
+import static org.mockito.ArgumentMatchers.any;
+import static org.mockito.Mockito.doCallRealMethod;
+import static org.mockito.Mockito.doReturn;
+import static org.mockito.Mockito.when;
 
 @ExtendWith(MockitoExtension.class)
 class PersonDtoMapperTest {
@@ -23,14 +31,21 @@ class PersonDtoMapperTest {
     @InjectMocks
     private PersonDtoMapperImpl personDtoMapper;
 
+    @Mock
+    private PassportDtoMapperImpl passportDtoMapperMock;
+
     @Test
     void toPersonDtoAllDataTest() {
+        PassportDto passportDto = new PassportDto("1111", "2222");
         Set<Vehicle> vehicleSet = prepareVehicleSet();
-        Person person = new Person(1, "12345", "Test", "Testov",
-                "Testovich", vehicleSet);
+        Person person = new Person(1, "Test", "Testov",
+                "Testovich", new Passport(), vehicleSet);
+
+        doReturn(passportDto).when(passportDtoMapperMock).toPassportDto(any(Passport.class));
+
         var result = personDtoMapper.toPersonDto(person);
         assertEquals(1, result.getId());
-        assertEquals("12345", result.getPassport());
+        assertEquals(passportDto, result.getPassportDto());
         assertEquals("Test", result.getName());
         assertEquals("Testov", result.getSurname());
         assertEquals("Testovich", result.getPatronymic());
@@ -39,13 +54,16 @@ class PersonDtoMapperTest {
 
     @Test
     void toPersonDtoPartOfDataTest() {
-        Person person = new Person(1, null, "Test", "Testov",
+        Person person = new Person(1, "Test", "Testov", null,
                 null, null);
+
+        doReturn(null).when(passportDtoMapperMock).toPassportDto(any());
+
         var result = personDtoMapper.toPersonDto(person);
         assertEquals(1, result.getId());
         assertEquals("Test", result.getName());
         assertEquals("Testov", result.getSurname());
-        assertNull(result.getPassport());
+        assertNull(result.getPassportDto());
         assertNull(result.getPatronymic());
         assertNull(result.getVehicles());
     }
@@ -57,16 +75,21 @@ class PersonDtoMapperTest {
 
     @Test
     void toPersonAllDataTest() {
+        Passport passport = preparePassport();
         Set<Vehicle> vehicleSet = prepareVehicleSet();
-        PersonDto personDto = new PersonDto(1, "12345", "Test", "Testov",
+        PersonDto personDto = new PersonDto(1, new PassportDto(), "Test", "Testov",
                 "Testovich", vehicleSet);
+
+        doReturn(passport).when(passportDtoMapperMock).toPassport(any(PassportDto.class));
+
         var result = personDtoMapper.toPerson(personDto);
         assertEquals(1, result.getId());
-        assertEquals("12345", result.getPassport());
         assertEquals("Test", result.getName());
         assertEquals("Testov", result.getSurname());
         assertEquals("Testovich", result.getPatronymic());
         assertEquals(vehicleSet, result.getVehicles());
+        assertEquals(passport, result.getPassport());
+        assertNotNull(result.getPassport().getPerson());
     }
 
     @Test
@@ -76,16 +99,23 @@ class PersonDtoMapperTest {
 
     @Test
     void toPersonDtoListAllDataTest() {
-        Person person = new Person(1, "12345", "Test", "Testov",
-                "Testovich", null);
-        Person person2 = new Person(2, "54321", "Test2", "Testov2",
-                "Testovich2", null);
+        PassportDto passportDto1 = new PassportDto("1111", "2222");
+        PassportDto passportDto2 = new PassportDto("3333", "4444");
+        Person person = new Person(1, "Test", "Testov",
+                "Testovich", new Passport(), null);
+        Person person2 = new Person(2, "Test2", "Testov2",
+                "Testovich2", new Passport(), null);
         List<Person> personList = List.of(person, person2);
 
-        var result = personDtoMapper.toPersonDtoList(personList);
+        when(passportDtoMapperMock.toPassportDto(any(Passport.class)))
+                .thenReturn(passportDto1)
+                .thenReturn(passportDto2);
 
+        var result = personDtoMapper.toPersonDtoList(personList);
         assertEquals(personList.size(), result.size());
         assertLists(personList, result);
+        assertEquals(passportDto1, result.get(0).getPassportDto());
+        assertEquals(passportDto2, result.get(1).getPassportDto());
     }
 
     @Test
@@ -96,12 +126,20 @@ class PersonDtoMapperTest {
     @Test
     void toPersonDtoSetAllDataTest() {
         var personSet = preparePersonSet();
-        var result = personDtoMapper.toPersonDtoSet(personSet);
+        PassportDto passportDto1 = new PassportDto("1111", "2222");
+        PassportDto passportDto2 = new PassportDto("3333", "4444");
 
+        when(passportDtoMapperMock.toPassportDto(any(Passport.class)))
+                .thenReturn(passportDto1)
+                .thenReturn(passportDto2);
+
+        var result = personDtoMapper.toPersonDtoSet(personSet);
         assertEquals(personSet.size(), result.size());
         var resultList = result.stream().sorted(Comparator.comparing(PersonDto::getId)).toList();
         var personList = personSet.stream().sorted(Comparator.comparing(Person::getId)).toList();
         assertLists(personList, resultList);
+        assertEquals(passportDto1, resultList.get(0).getPassportDto());
+        assertEquals(passportDto2, resultList.get(1).getPassportDto());
     }
 
     @Test
@@ -111,13 +149,20 @@ class PersonDtoMapperTest {
 
     @Test
     void updatePersonFullChangeTest() {
-        Person person = new Person(1, "12345", "Test", "Testov",
-                "Testovich", null);
-        PersonDto changedDto = new PersonDto(2, "54321", "ChangeTest", "ChangeTestov",
+        Passport passport = preparePassport();
+        PassportDto passportDto = new PassportDto("3333", "4444");
+        Person person = new Person(1, "Test", "Testov",
+                "Testovich", passport, null);
+        PersonDto changedDto = new PersonDto(2, passportDto, "ChangeTest", "ChangeTestov",
                 "ChangeTestovich", Collections.emptySet());
+
+        doCallRealMethod().when(passportDtoMapperMock).updatePassport(any(Passport.class), any(PassportDto.class));
+
         personDtoMapper.updatePerson(person, changedDto);
         assertEquals(2, person.getId());
-        assertEquals("54321", person.getPassport());
+        assertEquals("3333", person.getPassport().getSeries());
+        assertEquals("4444", person.getPassport().getNumber());
+        assertNotNull(person.getPassport().getPerson());
         assertEquals("ChangeTest", person.getName());
         assertEquals("ChangeTestov", person.getSurname());
         assertEquals("ChangeTestovich", person.getPatronymic());
@@ -126,13 +171,20 @@ class PersonDtoMapperTest {
 
     @Test
     void updatePersonPartOfDataChangeTest() {
-        Person person = new Person(1, "12345", "Test", "Testov",
-                "Testovich", Collections.emptySet());
-        PersonDto changedDto = new PersonDto(null, "54321", null, "ChangeTestov",
+        Passport passport = preparePassport();
+        PassportDto passportDto = new PassportDto("3333", "4444");
+        Person person = new Person(1, "Test", "Testov",
+                "Testovich", passport, Collections.emptySet());
+        PersonDto changedDto = new PersonDto(null, passportDto, null, "ChangeTestov",
                 null, null);
+
+        doCallRealMethod().when(passportDtoMapperMock).updatePassport(any(Passport.class), any(PassportDto.class));
+
         personDtoMapper.updatePerson(person, changedDto);
         assertEquals(1, person.getId());
-        assertEquals("54321", person.getPassport());
+        assertEquals("3333", person.getPassport().getSeries());
+        assertEquals("4444", person.getPassport().getNumber());
+        assertNotNull(person.getPassport().getPerson());
         assertEquals("Test", person.getName());
         assertEquals("ChangeTestov", person.getSurname());
         assertEquals("Testovich", person.getPatronymic());
@@ -141,12 +193,16 @@ class PersonDtoMapperTest {
 
     @Test
     void updatePersonNoChangeTest() {
-        Person person = new Person(1, "12345", "Test", "Testov",
-                "Testovich", Collections.emptySet());
+        Passport passport = preparePassport();
+        Person person = new Person(1, "Test", "Testov",
+                "Testovich", passport, Collections.emptySet());
         PersonDto changedDto = new PersonDto();
+
         personDtoMapper.updatePerson(person, changedDto);
         assertEquals(1, person.getId());
-        assertEquals("12345", person.getPassport());
+        assertEquals("1111", person.getPassport().getSeries());
+        assertEquals("2222", person.getPassport().getNumber());
+        assertNotNull(person.getPassport().getPerson());
         assertEquals("Test", person.getName());
         assertEquals("Testov", person.getSurname());
         assertEquals("Testovich", person.getPatronymic());
@@ -157,11 +213,14 @@ class PersonDtoMapperTest {
         for (int i = 0; i < personDtoList.size(); i++) {
             assertEquals(personList.get(i).getId(), personDtoList.get(i).getId());
             assertEquals(personList.get(i).getName(), personDtoList.get(i).getName());
-            assertEquals(personList.get(i).getPassport(), personDtoList.get(i).getPassport());
             assertEquals(personList.get(i).getSurname(), personDtoList.get(i).getSurname());
             assertEquals(personList.get(i).getPatronymic(), personDtoList.get(i).getPatronymic());
             assertEquals(personList.get(i).getVehicles(), personDtoList.get(i).getVehicles());
         }
+    }
+
+    private Passport preparePassport() {
+        return new Passport(1, "1111", "2222", null);
     }
 
     private Set<Vehicle> prepareVehicleSet() {
@@ -174,10 +233,10 @@ class PersonDtoMapperTest {
     }
 
     private Set<Person> preparePersonSet() {
-        Person person = new Person(1, "12345", "Test", "Testov",
-                "Testovich", null);
-        Person person2 = new Person(2, "54321", "Test2", "Testov2",
-                "Testovich2", null);
+        Person person = new Person(1, "Test", "Testov",
+                "Testovich", new Passport(), null);
+        Person person2 = new Person(2, "Test2", "Testov2",
+                "Testovich2", new Passport(), null);
         Set<Person> personSet = new HashSet<>();
         personSet.add(person);
         personSet.add(person2);

@@ -1,6 +1,7 @@
 package org.gus.carbd.mapper;
 
 import org.gus.carbd.dto.VehicleDto;
+import org.gus.carbd.entity.Passport;
 import org.gus.carbd.entity.Person;
 import org.gus.carbd.entity.Vehicle;
 import org.junit.jupiter.api.Test;
@@ -150,10 +151,10 @@ class VehicleDtoMapperTest {
     }
 
     private Set<Person> preparePersonSet() {
-        Person person = new Person(1, "12345", "Test", "Testov",
-                "Testovich", null);
-        Person person2 = new Person(2, "54321", "Test2", "Testov2",
-                "Testovich2", null);
+        Person person = new Person(1, "Test", "Testov",
+                "Testovich", new Passport(), null);
+        Person person2 = new Person(2, "Test2", "Testov2",
+                "Testovich2", new Passport(), null);
         Set<Person> personSet = new HashSet<>();
         personSet.add(person);
         personSet.add(person2);

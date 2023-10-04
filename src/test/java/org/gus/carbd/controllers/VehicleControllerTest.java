@@ -1,8 +1,9 @@
 package org.gus.carbd.controllers;
 
 import com.fasterxml.jackson.databind.ObjectMapper;
+import org.gus.carbd.dto.PassportDto;
+import org.gus.carbd.dto.PersonDto;
 import org.gus.carbd.dto.VehicleDto;
-import org.gus.carbd.entity.Person;
 import org.gus.carbd.entity.Vehicle;
 import org.gus.carbd.mapper.PersonDtoMapperImpl;
 import org.gus.carbd.mapper.VehicleDtoMapperImpl;
@@ -47,7 +48,7 @@ class VehicleControllerTest {
     @MockBean
     private VehicleService vehicleService;
 
-    @MockBean(answer = Answers.CALLS_REAL_METHODS)
+    @MockBean
     private PersonDtoMapperImpl personDtoMapper;
 
     @MockBean(answer = Answers.CALLS_REAL_METHODS)
@@ -108,15 +109,15 @@ class VehicleControllerTest {
 
     @Test
     void getVehicleOwnersTest() throws Exception {
-        Person person = new Person(1, "12345", "Test", "Testov",
+        PersonDto personDto1 = new PersonDto(1, new PassportDto(), "Test", "Testov",
                 "Testovich", null);
-        Person person2 = new Person(2, "54321", "Test2", "Testov2",
+        PersonDto personDto2 = new PersonDto(2, new PassportDto(), "Test2", "Testov2",
                 "Testovich2", null);
-        Set<Person> personSet = new HashSet<>();
-        personSet.add(person);
-        personSet.add(person2);
+        Set<PersonDto> personDtoSet = new HashSet<>();
+        personDtoSet.add(personDto1);
+        personDtoSet.add(personDto2);
 
-        doReturn(personSet).when(vehicleService).getVehicleOwners(anyInt());
+        doReturn(personDtoSet).when(personDtoMapper).toPersonDtoSet(any());
 
         mockMvc.perform(get((BASE_URL.concat("/1/people"))))
                 .andExpect(status().isOk())

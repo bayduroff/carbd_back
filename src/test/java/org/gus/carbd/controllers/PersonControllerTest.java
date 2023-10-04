@@ -1,8 +1,8 @@
 package org.gus.carbd.controllers;
 
 import com.fasterxml.jackson.databind.ObjectMapper;
+import org.gus.carbd.dto.PassportDto;
 import org.gus.carbd.dto.PersonDto;
-import org.gus.carbd.entity.Person;
 import org.gus.carbd.entity.Vehicle;
 import org.gus.carbd.mapper.PersonDtoMapperImpl;
 import org.gus.carbd.mapper.VehicleDtoMapperImpl;
@@ -25,7 +25,6 @@ import java.util.Set;
 import static org.hamcrest.Matchers.containsInAnyOrder;
 import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.ArgumentMatchers.anyInt;
-import static org.mockito.ArgumentMatchers.anyString;
 import static org.mockito.Mockito.doNothing;
 import static org.mockito.Mockito.doReturn;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.delete;
@@ -35,9 +34,9 @@ import static org.springframework.test.web.servlet.request.MockMvcRequestBuilder
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.jsonPath;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.status;
 
-@WebMvcTest(controllers = PeopleController.class)
+@WebMvcTest(controllers = PersonController.class)
 @ExtendWith(MockitoExtension.class)
-public class PeopleControllerTest {
+public class PersonControllerTest {
 
     private static final String BASE_URL = "/people";
 
@@ -47,9 +46,9 @@ public class PeopleControllerTest {
     private ObjectMapper objectMapper;
 
     @MockBean
-    private PersonService personService;
+    private PersonService personServiceMock;
 
-    @MockBean(answer = Answers.CALLS_REAL_METHODS)
+    @MockBean
     private PersonDtoMapperImpl personDtoMapper;
 
     @MockBean(answer = Answers.CALLS_REAL_METHODS)
@@ -57,13 +56,12 @@ public class PeopleControllerTest {
 
     @Test
     void getPeopleListTest() throws Exception {
-        Person person = new Person(1, "12345", "Test", "Testov",
-                "Testovich", null);
-        Person person2 = new Person(2, "54321", "Test2", "Testov2",
+        PersonDto personDto1 = preparePersonDto();
+        PersonDto personDto2 = new PersonDto(2, new PassportDto(), "Test2", "Testov2",
                 "Testovich2", null);
-        List<Person> personList = List.of(person, person2);
+        List<PersonDto> personDtoList = List.of(personDto1, personDto2);
 
-        doReturn(personList).when(personService).getPeopleList();
+        doReturn(personDtoList).when(personDtoMapper).toPersonDtoList(any());
 
         mockMvc.perform(get(BASE_URL))
                 .andExpect(status().isOk())
@@ -73,18 +71,18 @@ public class PeopleControllerTest {
 
     @Test
     void getPersonByIdTest() throws Exception {
-        doReturn(preparePerson()).when(personService).getPersonById(anyInt());
+        doReturn(preparePersonDto()).when(personDtoMapper).toPersonDto(any());
 
-        mockMvc.perform(get((BASE_URL.concat("/1"))))
+        mockMvc.perform(get(BASE_URL.concat("/1")))
                 .andExpect(status().isOk())
                 .andExpect(jsonPath("$.name").value("Test"));
     }
 
     @Test
     void addPersonTest() throws Exception {
-        doNothing().when(personService).addPerson(any(PersonDto.class));
+        doNothing().when(personServiceMock).addPerson(any(PersonDto.class));
 
-        mockMvc.perform(post((BASE_URL.concat("/add")))
+        mockMvc.perform(post(BASE_URL.concat("/add"))
                         .contentType(MediaType.APPLICATION_JSON)
                         .content(objectMapper.writeValueAsString(preparePersonDto())))
                 .andExpect(status().isOk());
@@ -92,17 +90,17 @@ public class PeopleControllerTest {
 
     @Test
     void deletePersonByIdTest() throws Exception {
-        doNothing().when(personService).deletePersonById(anyInt());
+        doNothing().when(personServiceMock).deletePersonById(anyInt());
 
-        mockMvc.perform(delete((BASE_URL.concat("/1"))))
+        mockMvc.perform(delete(BASE_URL.concat("/1")))
                 .andExpect(status().isOk());
     }
 
     @Test
     void editPersonByIdTest() throws Exception {
-        doNothing().when(personService).editPersonById(anyInt(), any(PersonDto.class));
+        doNothing().when(personServiceMock).editPersonById(anyInt(), any(PersonDto.class));
 
-        mockMvc.perform(patch((BASE_URL.concat("/1/edit")))
+        mockMvc.perform(patch(BASE_URL.concat("/1/edit"))
                         .contentType(MediaType.APPLICATION_JSON)
                         .content(objectMapper.writeValueAsString(preparePersonDto())))
                 .andExpect(status().isOk());
@@ -110,44 +108,44 @@ public class PeopleControllerTest {
 
     @Test
     void getPersonVehiclesByPersonIdTest() throws Exception {
-        doReturn(prepareVehicleSet()).when(personService).getPersonVehiclesByPersonId(anyInt());
+        doReturn(prepareVehicleSet()).when(personServiceMock).getPersonVehiclesByPersonId(anyInt());
 
-        mockMvc.perform(get((BASE_URL.concat("/1/vehicles"))))
+        mockMvc.perform(get(BASE_URL.concat("/1/vehicles")))
                 .andExpect(status().isOk())
                 .andExpect(jsonPath("$.[*].brand", containsInAnyOrder("test", "test2")));
     }
 
     @Test
     void updatePersonAssignVehicleTest() throws Exception {
-        doNothing().when(personService).updatePersonAssignVehicle(anyInt(), anyInt());
+        doNothing().when(personServiceMock).updatePersonAssignVehicle(anyInt(), anyInt());
 
-        mockMvc.perform(post((BASE_URL.concat("/1/vehicles/1"))))
+        mockMvc.perform(post(BASE_URL.concat("/1/vehicles/1")))
                 .andExpect(status().isOk());
     }
 
     @Test
     void updatePersonUnAssignVehicleTest() throws Exception {
-        doNothing().when(personService).updatePersonUnAssignVehicle(anyInt(), anyInt());
+        doNothing().when(personServiceMock).updatePersonUnAssignVehicle(anyInt(), anyInt());
 
-        mockMvc.perform(patch((BASE_URL.concat("/1/vehicles/1"))))
+        mockMvc.perform(patch(BASE_URL.concat("/1/vehicles/1")))
                 .andExpect(status().isOk());
     }
 
     @Test
     void getPersonByPassportTest() throws Exception {
-        doReturn(preparePerson()).when(personService).getPersonByPassport(anyString());
+        doReturn(preparePersonDto()).when(personDtoMapper).toPersonDto(any());
 
-        mockMvc.perform(get((BASE_URL.concat("/search/12345"))))
+        mockMvc.perform(get(BASE_URL.concat("/search?series=1234&number=567890")))
                 .andExpect(status().isOk())
                 .andExpect(jsonPath("$.name").value("Test"));
     }
 
     @Test
     void getPersonVehiclesByPassportTest() throws Exception {
-        doReturn(prepareVehicleSet()).when(personService).getPersonVehiclesByPassport(anyString());
+        doReturn(prepareVehicleSet()).when(personServiceMock).getPersonVehiclesByPassport("1234", "567890");
 
-        mockMvc.perform(get((BASE_URL.concat("/search/12345/vehicles"))))
-                .andExpect(status().isOk())
+        var x = mockMvc.perform(get(BASE_URL.concat("/search/vehicles?series=1234&number=567890")));
+        x.andExpect(status().isOk())
                 .andExpect(jsonPath("$.[*].brand", containsInAnyOrder("test", "test2")));
     }
 
@@ -160,13 +158,8 @@ public class PeopleControllerTest {
         return vehicleSet;
     }
 
-    private Person preparePerson() {
-        return new Person(1, "12345", "Test", "Testov",
-                "Testovich", null);
-    }
-
     private PersonDto preparePersonDto() {
-        return new PersonDto(1, "12345", "Test", "Testov",
+        return new PersonDto(1, new PassportDto(), "Test", "Testov",
                 "Testovich", null);
     }
 }

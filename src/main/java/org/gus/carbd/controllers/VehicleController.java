@@ -29,19 +29,19 @@ import java.util.Set;
 public class VehicleController {
 
     public final VehicleService vehicleService;
-    public final VehicleDtoMapper vehicleDTOMapper;
-    public final PersonDtoMapper personDTOMapper;
+    public final VehicleDtoMapper vehicleDtoMapper;
+    public final PersonDtoMapper personDtoMapper;
 
     @GetMapping()
     public List<VehicleDto> getVehiclesList() {
         List<Vehicle> vehicleList = vehicleService.getVehiclesList();
-        return vehicleDTOMapper.toVehicleDtoList(vehicleList);
+        return vehicleDtoMapper.toVehicleDtoList(vehicleList);
     }
 
     @GetMapping("/{vin}")
     public VehicleDto getVehicleByVin(@PathVariable("vin") int vin) {
         Vehicle vehicle = vehicleService.getVehicleByVin(vin);
-        return vehicleDTOMapper.toVehicleDto(vehicle);
+        return vehicleDtoMapper.toVehicleDto(vehicle);
     }
 
     @PostMapping("/add")
@@ -62,7 +62,7 @@ public class VehicleController {
     @GetMapping("/{vin}/people")
     public Set<PersonDto> getVehicleOwners(@PathVariable("vin") int vin) {
         Set<Person> personSet = vehicleService.getVehicleOwners(vin);
-        return personDTOMapper.toPersonDtoSet(personSet);
+        return personDtoMapper.toPersonDtoSet(personSet);
     }
 
     @GetMapping("/{vin}/peoplepass")

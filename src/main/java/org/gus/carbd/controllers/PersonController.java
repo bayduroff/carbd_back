@@ -29,19 +29,19 @@ import java.util.Set;
 public class PersonController {
 
     public final PersonService personService;
-    public final PersonDtoMapper personDTOMapper;
-    public final VehicleDtoMapper vehicleDTOMapper;
+    public final PersonDtoMapper personDtoMapper;
+    public final VehicleDtoMapper vehicleDtoMapper;
 
     @GetMapping()
     public List<PersonDto> getPeopleList() {
         List<Person> peopleList = personService.getPeopleList();
-        return personDTOMapper.toPersonDtoList(peopleList);
+        return personDtoMapper.toPersonDtoList(peopleList);
     }
 
     @GetMapping("/{id}")
     public PersonDto getPersonById(@PathVariable("id") int id) {
         Person person = personService.getPersonById(id);
-        return personDTOMapper.toPersonDto(person);
+        return personDtoMapper.toPersonDto(person);
     }
 
     @PostMapping("/add")
@@ -62,7 +62,7 @@ public class PersonController {
     @GetMapping("/{id}/vehicles")
     public Set<VehicleDto> getPersonVehiclesByPersonId(@PathVariable("id") int id) {
         Set<Vehicle> vehicleSet = personService.getPersonVehiclesByPersonId(id);
-        return vehicleDTOMapper.toVehicleDtoSet(vehicleSet);
+        return vehicleDtoMapper.toVehicleDtoSet(vehicleSet);
     }
 
     @PostMapping("/{id}/vehicles/{vin}")
@@ -81,13 +81,13 @@ public class PersonController {
     public PersonDto getPersonByPassport(@RequestParam String series,
                                          @RequestParam String number) {
         Person person = personService.getPersonByPassport(series, number);
-        return personDTOMapper.toPersonDto(person);
+        return personDtoMapper.toPersonDto(person);
     }
 
     @GetMapping("/search/vehicles")
     public Set<VehicleDto> getPersonVehiclesByPassport(@RequestParam String series,
                                                        @RequestParam String number) {
         Set<Vehicle> vehicleSet = personService.getPersonVehiclesByPassport(series, number);
-        return vehicleDTOMapper.toVehicleDtoSet(vehicleSet);
+        return vehicleDtoMapper.toVehicleDtoSet(vehicleSet);
     }
 }
