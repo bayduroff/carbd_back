@@ -1,7 +1,7 @@
 package org.gus.carbd.mapper;
 
 import org.gus.carbd.dto.PassportDto;
-import org.gus.carbd.entity.Passport;
+import org.gus.carbd.entity.PassportEntity;
 import org.mapstruct.InjectionStrategy;
 import org.mapstruct.Mapper;
 import org.mapstruct.Mapping;
@@ -14,13 +14,13 @@ import org.mapstruct.ReportingPolicy;
         unmappedSourcePolicy = ReportingPolicy.WARN)
 public interface PassportDtoMapper {
 
-    PassportDto toPassportDto(Passport passport);
+    PassportDto toPassportDto(PassportEntity passport);
 
     @Mapping(target = "passport_id", ignore = true)
     @Mapping(target = "person", ignore = true)
-    Passport toPassport(PassportDto passportDto);
+    PassportEntity toPassport(PassportDto passportDto);
 
     @Mapping(target = "passport_id", ignore = true)
     @Mapping(target = "person", ignore = true)
-    void updatePassport(@MappingTarget Passport passport, PassportDto changedPassportDto);
+    void updatePassport(@MappingTarget PassportEntity passport, PassportDto changedPassportDto);
 }

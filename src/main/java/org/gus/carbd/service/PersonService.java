@@ -3,8 +3,8 @@ package org.gus.carbd.service;
 import jakarta.transaction.Transactional;
 import lombok.RequiredArgsConstructor;
 import org.gus.carbd.dto.PersonDto;
-import org.gus.carbd.entity.Person;
-import org.gus.carbd.entity.Vehicle;
+import org.gus.carbd.entity.PersonEntity;
+import org.gus.carbd.entity.VehicleEntity;
 import org.gus.carbd.exception.ResourceNotFoundException;
 import org.gus.carbd.mapper.PersonDtoMapper;
 import org.gus.carbd.repository.PersonRepository;
@@ -23,13 +23,15 @@ public class PersonService {
     public final VehicleService vehicleService;
     private final PersonDtoMapper personDtoMapper;
 
-    public List<Person> getPeopleList() {
+    public List<PersonEntity> getPeopleList() {
         return personRepository.findAll();
+        //тут маппер преобразует персонЭнтити в ПерсонДомен
+        //после возвращает лист ПёрсонДомен
     }
 
-    public Person getPersonById(int id) {
-        Optional<Person> result = personRepository.findById(id);
-        Person person;
+    public PersonEntity getPersonById(int id) {
+        Optional<PersonEntity> result = personRepository.findById(id);
+        PersonEntity person;
         if (result.isPresent()) {
             person = result.get();
         } else {
@@ -63,12 +65,12 @@ public class PersonService {
     }
 
     public void updatePersonAssignVehicle(int id, int vin) {
-        Person person = getPersonById(id);
-        Vehicle vehicle = vehicleService.getVehicleByVin(vin);
+        PersonEntity person = getPersonById(id);
+        VehicleEntity vehicle = vehicleService.getVehicleByVin(vin);
         if (person.getVehicles() != null) {
             person.getVehicles().add(vehicle);
         } else {
-            Set<Vehicle> vehicles = new HashSet<>();
+            Set<VehicleEntity> vehicles = new HashSet<>();
             vehicles.add(vehicle);
             person.setVehicles(vehicles);
         }
@@ -77,25 +79,25 @@ public class PersonService {
     }
 
     public void updatePersonUnAssignVehicle(int id, int vin) {
-        Person person = getPersonById(id);
+        PersonEntity person = getPersonById(id);
         if (person.getVehicles() == null) {
             throw new RuntimeException("Person with id - " + id + " has no vehicles to unassign");
         }
-        Vehicle vehicle = vehicleService.getVehicleByVin(vin);
+        VehicleEntity vehicle = vehicleService.getVehicleByVin(vin);
         person.getVehicles().remove(vehicle);
 
         personRepository.save(person);
     }
 
-    public Set<Vehicle> getPersonVehiclesByPersonId(int id) {
-        Person person = getPersonById(id);
+    public Set<VehicleEntity> getPersonVehiclesByPersonId(int id) {
+        PersonEntity person = getPersonById(id);
 
         return person.getVehicles();
     }
 
-    public Person getPersonByPassport(String series, String number) {
-        Optional<Person> resultPerson = personRepository.findPersonByPassportSeriesAndPassportNumber(series, number);
-        Person person;
+    public PersonEntity getPersonByPassport(String series, String number) {
+        Optional<PersonEntity> resultPerson = personRepository.findPersonByPassportSeriesAndPassportNumber(series, number);
+        PersonEntity person;
         if (resultPerson.isPresent()) {
             person = resultPerson.get();
         } else {
@@ -105,8 +107,8 @@ public class PersonService {
         return person;
     }
 
-    public Set<Vehicle> getPersonVehiclesByPassport(String series, String number) {
-        Person person = getPersonByPassport(series, number);
+    public Set<VehicleEntity> getPersonVehiclesByPassport(String series, String number) {
+        PersonEntity person = getPersonByPassport(series, number);
 
         return person.getVehicles();
     }

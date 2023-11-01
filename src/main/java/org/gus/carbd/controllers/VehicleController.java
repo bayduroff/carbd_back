@@ -4,8 +4,8 @@ import lombok.RequiredArgsConstructor;
 import org.gus.carbd.dto.PassportDto;
 import org.gus.carbd.dto.PersonDto;
 import org.gus.carbd.dto.VehicleDto;
-import org.gus.carbd.entity.Person;
-import org.gus.carbd.entity.Vehicle;
+import org.gus.carbd.entity.PersonEntity;
+import org.gus.carbd.entity.VehicleEntity;
 import org.gus.carbd.mapper.PersonDtoMapper;
 import org.gus.carbd.mapper.VehicleDtoMapper;
 import org.gus.carbd.service.VehicleService;
@@ -34,13 +34,13 @@ public class VehicleController {
 
     @GetMapping()
     public List<VehicleDto> getVehiclesList() {
-        List<Vehicle> vehicleList = vehicleService.getVehiclesList();
+        List<VehicleEntity> vehicleList = vehicleService.getVehiclesList();
         return vehicleDtoMapper.toVehicleDtoList(vehicleList);
     }
 
     @GetMapping("/{vin}")
     public VehicleDto getVehicleByVin(@PathVariable("vin") int vin) {
-        Vehicle vehicle = vehicleService.getVehicleByVin(vin);
+        VehicleEntity vehicle = vehicleService.getVehicleByVin(vin);
         return vehicleDtoMapper.toVehicleDto(vehicle);
     }
 
@@ -61,7 +61,7 @@ public class VehicleController {
 
     @GetMapping("/{vin}/people")
     public Set<PersonDto> getVehicleOwners(@PathVariable("vin") int vin) {
-        Set<Person> personSet = vehicleService.getVehicleOwners(vin);
+        Set<PersonEntity> personSet = vehicleService.getVehicleOwners(vin);
         return personDtoMapper.toPersonDtoSet(personSet);
     }
 

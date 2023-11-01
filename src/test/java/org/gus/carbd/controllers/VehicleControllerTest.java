@@ -4,7 +4,7 @@ import com.fasterxml.jackson.databind.ObjectMapper;
 import org.gus.carbd.dto.PassportDto;
 import org.gus.carbd.dto.PersonDto;
 import org.gus.carbd.dto.VehicleDto;
-import org.gus.carbd.entity.Vehicle;
+import org.gus.carbd.entity.VehicleEntity;
 import org.gus.carbd.mapper.PersonDtoMapperImpl;
 import org.gus.carbd.mapper.VehicleDtoMapperImpl;
 import org.gus.carbd.service.VehicleService;
@@ -56,11 +56,11 @@ class VehicleControllerTest {
 
     @Test
     void getVehiclesListTest() throws Exception {
-        Vehicle vehicle = new Vehicle(1, "BMW", "X5",
+        VehicleEntity vehicle = new VehicleEntity(1, "BMW", "X5",
                 1234, null);
-        Vehicle vehicle2 = new Vehicle(2, "Lada", "Kalina",
+        VehicleEntity vehicle2 = new VehicleEntity(2, "Lada", "Kalina",
                 4321, null);
-        List<Vehicle> vehicleList = List.of(vehicle, vehicle2);
+        List<VehicleEntity> vehicleList = List.of(vehicle, vehicle2);
 
         doReturn(vehicleList).when(vehicleService).getVehiclesList();
 
@@ -135,8 +135,8 @@ class VehicleControllerTest {
                 .andExpect(jsonPath("$.[*]", containsInAnyOrder("12345", "67890")));
     }
 
-    private Vehicle prepareVehicle() {
-        return new Vehicle(1, "BMW", "X5",
+    private VehicleEntity prepareVehicle() {
+        return new VehicleEntity(1, "BMW", "X5",
                 1234, null);
     }
 

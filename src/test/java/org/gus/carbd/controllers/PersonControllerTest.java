@@ -3,7 +3,7 @@ package org.gus.carbd.controllers;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import org.gus.carbd.dto.PassportDto;
 import org.gus.carbd.dto.PersonDto;
-import org.gus.carbd.entity.Vehicle;
+import org.gus.carbd.entity.VehicleEntity;
 import org.gus.carbd.mapper.PersonDtoMapperImpl;
 import org.gus.carbd.mapper.VehicleDtoMapperImpl;
 import org.gus.carbd.service.PersonService;
@@ -149,10 +149,10 @@ public class PersonControllerTest {
                 .andExpect(jsonPath("$.[*].brand", containsInAnyOrder("test", "test2")));
     }
 
-    private Set<Vehicle> prepareVehicleSet() {
-        Vehicle vehicle1 = new Vehicle(1, "test", "test1", 123, Collections.emptySet());
-        Vehicle vehicle2 = new Vehicle(2, "test2", "test2", 321, Collections.emptySet());
-        Set<Vehicle> vehicleSet = new HashSet<>();
+    private Set<VehicleEntity> prepareVehicleSet() {
+        VehicleEntity vehicle1 = new VehicleEntity(1, "test", "test1", 123, Collections.emptySet());
+        VehicleEntity vehicle2 = new VehicleEntity(2, "test2", "test2", 321, Collections.emptySet());
+        Set<VehicleEntity> vehicleSet = new HashSet<>();
         vehicleSet.add(vehicle1);
         vehicleSet.add(vehicle2);
         return vehicleSet;

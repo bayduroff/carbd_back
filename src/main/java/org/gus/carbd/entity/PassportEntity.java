@@ -18,7 +18,7 @@ import lombok.NoArgsConstructor;
 @NoArgsConstructor
 @Entity
 @Table(name = "passport")
-public class Passport {
+public class PassportEntity {
 
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
@@ -34,14 +34,14 @@ public class Passport {
     @OneToOne
     @JoinColumn(name = "person_id", referencedColumnName = "id")
     @JsonBackReference
-    private Person person;
+    private PersonEntity person;
 
     @Override
     public boolean equals(final Object o) {
         if (o == null) return false;
         if (o == this) return true;
-        if (!(o instanceof Passport)) return false;
-        final Passport other = (Passport) o;
+        if (!(o instanceof PassportEntity)) return false;
+        final PassportEntity other = (PassportEntity) o;
         if (!other.canEqual(this)) return false;
         final Object this$passport_id = this.getPassport_id();
         final Object other$passport_id = other.getPassport_id();
@@ -51,7 +51,7 @@ public class Passport {
     }
 
     protected boolean canEqual(final Object other) {
-        return other instanceof Passport;
+        return other instanceof PassportEntity;
     }
 
     @Override

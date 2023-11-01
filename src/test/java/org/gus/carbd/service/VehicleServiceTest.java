@@ -2,9 +2,9 @@ package org.gus.carbd.service;
 
 import org.gus.carbd.dto.PassportDto;
 import org.gus.carbd.dto.VehicleDto;
-import org.gus.carbd.entity.Passport;
-import org.gus.carbd.entity.Person;
-import org.gus.carbd.entity.Vehicle;
+import org.gus.carbd.entity.PassportEntity;
+import org.gus.carbd.entity.PersonEntity;
+import org.gus.carbd.entity.VehicleEntity;
 import org.gus.carbd.exception.ResourceNotFoundException;
 import org.gus.carbd.mapper.PassportDtoMapperImpl;
 import org.gus.carbd.mapper.VehicleDtoMapperImpl;
@@ -47,8 +47,8 @@ class VehicleServiceTest {
 
     @Test
     void getVehiclesListTest() {
-        Vehicle vehicle = new Vehicle(1, "test", "test1", 123, Collections.emptySet());
-        List<Vehicle> vehicleList = new ArrayList<>();
+        VehicleEntity vehicle = new VehicleEntity(1, "test", "test1", 123, Collections.emptySet());
+        List<VehicleEntity> vehicleList = new ArrayList<>();
         vehicleList.add(vehicle);
 
         doReturn(vehicleList).when(vehicleRepositoryMock).findAll();
@@ -58,7 +58,7 @@ class VehicleServiceTest {
 
     @Test
     void getVehicleByVinPositiveTest() {
-        Vehicle vehicle = new Vehicle(1, "BMW", "X5",
+        VehicleEntity vehicle = new VehicleEntity(1, "BMW", "X5",
                 1990, null);
         doReturn(Optional.of(vehicle)).when(vehicleRepositoryMock).findById(any());
 
@@ -74,7 +74,7 @@ class VehicleServiceTest {
 
     @Test
     void addVehiclePositiveTest() {
-        ArgumentCaptor<Vehicle> vehicleCaptor = ArgumentCaptor.forClass(Vehicle.class);
+        ArgumentCaptor<VehicleEntity> vehicleCaptor = ArgumentCaptor.forClass(VehicleEntity.class);
         VehicleDto vehicleDto = new VehicleDto();
         vehicleDto.setBrand("Test");
         vehicleDto.setYear(2000);
@@ -99,7 +99,7 @@ class VehicleServiceTest {
     void editVehicleByVinPositiveTest() {
         VehicleDto changedVehicleDto = new VehicleDto();
         changedVehicleDto.setYear(1990);
-        Vehicle vehicle = new Vehicle();
+        VehicleEntity vehicle = new VehicleEntity();
         vehicle.setBrand("Test");
         vehicle.setYear(2000);
 
@@ -120,14 +120,14 @@ class VehicleServiceTest {
 
     @Test
     void getVehicleOwnersPositiveTest() {
-        Person person1 = new Person();
+        PersonEntity person1 = new PersonEntity();
         person1.setName("First");
-        Person person2 = new Person();
+        PersonEntity person2 = new PersonEntity();
         person2.setName("Second");
-        HashSet<Person> people = new HashSet<>();
+        HashSet<PersonEntity> people = new HashSet<>();
         people.add(person1);
         people.add(person2);
-        Vehicle vehicle = new Vehicle();
+        VehicleEntity vehicle = new VehicleEntity();
         vehicle.setPeople(people);
 
         doReturn(Optional.of(vehicle)).when(vehicleRepositoryMock).findById(any());
@@ -144,24 +144,24 @@ class VehicleServiceTest {
 
     @Test
     void getVehicleOwnersPassportsPositiveTest() {
-        Passport passport1 = new Passport();
+        PassportEntity passport1 = new PassportEntity();
         passport1.setNumber("123");
         passport1.setSeries("456");
-        Passport passport2 = new Passport();
+        PassportEntity passport2 = new PassportEntity();
         passport2.setNumber("789");
         passport2.setSeries("098");
 
-        Person person1 = new Person();
+        PersonEntity person1 = new PersonEntity();
         person1.setId(1);
         person1.setPassport(passport1);
-        Person person2 = new Person();
+        PersonEntity person2 = new PersonEntity();
         person2.setId(2);
         person2.setPassport(passport2);
 
-        HashSet<Person> people = new HashSet<>();
+        HashSet<PersonEntity> people = new HashSet<>();
         people.add(person1);
         people.add(person2);
-        Vehicle vehicle = new Vehicle();
+        VehicleEntity vehicle = new VehicleEntity();
         vehicle.setPeople(people);
 
 
@@ -181,13 +181,13 @@ class VehicleServiceTest {
 
     @Test
     void getVehicleOwnersPassportsVehicleOwnersEmptyOrNullTest() {
-        Vehicle vehicle = new Vehicle();
+        VehicleEntity vehicle = new VehicleEntity();
         vehicle.setPeople(Collections.emptySet());
 
         doReturn(Optional.of(vehicle)).when(vehicleRepositoryMock).findById(any());
         assertThrows(RuntimeException.class, () -> vehicleService.getVehicleOwnersPassports(1));
 
-        doReturn(Optional.of(new Vehicle())).when(vehicleRepositoryMock).findById(any());
+        doReturn(Optional.of(new VehicleEntity())).when(vehicleRepositoryMock).findById(any());
         assertThrows(RuntimeException.class, () -> vehicleService.getVehicleOwnersPassports(1));
     }
 }

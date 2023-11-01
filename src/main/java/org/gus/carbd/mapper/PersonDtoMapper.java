@@ -1,7 +1,7 @@
 package org.gus.carbd.mapper;
 
 import org.gus.carbd.dto.PersonDto;
-import org.gus.carbd.entity.Person;
+import org.gus.carbd.entity.PersonEntity;
 import org.mapstruct.AfterMapping;
 import org.mapstruct.InjectionStrategy;
 import org.mapstruct.Mapper;
@@ -19,20 +19,20 @@ import java.util.Set;
 public interface PersonDtoMapper {
 
     @Mapping(target = "passportDto", source = "passport")
-    PersonDto toPersonDto(Person person);
+    PersonDto toPersonDto(PersonEntity person);
 
-    List<PersonDto> toPersonDtoList(List<Person> people);
+    List<PersonDto> toPersonDtoList(List<PersonEntity> people);
 
-    Set<PersonDto> toPersonDtoSet(Set<Person> people);
+    Set<PersonDto> toPersonDtoSet(Set<PersonEntity> people);
 
     @Mapping(target = "passport", source = "passportDto")
-    Person toPerson(PersonDto personDTO);
+    PersonEntity toPerson(PersonDto personDTO);
 
     @AfterMapping
-    default void linkPersonWithPassport(@MappingTarget Person person) {
+    default void linkPersonWithPassport(@MappingTarget PersonEntity person) {
         person.getPassport().setPerson(person);
     }
 
     @Mapping(target = "passport", source = "passportDto")
-    void updatePerson(@MappingTarget Person person, PersonDto changedPersonDto);
+    void updatePerson(@MappingTarget PersonEntity person, PersonDto changedPersonDto);
 }

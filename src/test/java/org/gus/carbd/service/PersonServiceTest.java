@@ -2,9 +2,9 @@ package org.gus.carbd.service;
 
 import org.gus.carbd.dto.PassportDto;
 import org.gus.carbd.dto.PersonDto;
-import org.gus.carbd.entity.Passport;
-import org.gus.carbd.entity.Person;
-import org.gus.carbd.entity.Vehicle;
+import org.gus.carbd.entity.PassportEntity;
+import org.gus.carbd.entity.PersonEntity;
+import org.gus.carbd.entity.VehicleEntity;
 import org.gus.carbd.exception.ResourceNotFoundException;
 import org.gus.carbd.mapper.PersonDtoMapperImpl;
 import org.gus.carbd.repository.PersonRepository;
@@ -50,9 +50,9 @@ class PersonServiceTest {
 
     @Test
     void getPeopleListTest() {
-        List<Person> people = new ArrayList<>();
-        Person person = new Person(1, "Test",
-                "Testov", "Testovich", new Passport(), null);
+        List<PersonEntity> people = new ArrayList<>();
+        PersonEntity person = new PersonEntity(1, "Test",
+                "Testov", "Testovich", new PassportEntity(), null);
         people.add(person);
 
         doReturn(people).when(personRepositoryMock).findAll();
@@ -62,8 +62,8 @@ class PersonServiceTest {
 
     @Test
     void getPersonByIdPositiveTest() {
-        Person person = new Person(1, "Test",
-                "Testov", "Testovich", new Passport(), null);
+        PersonEntity person = new PersonEntity(1, "Test",
+                "Testov", "Testovich", new PassportEntity(), null);
         doReturn(Optional.of(person)).when(personRepositoryMock).findById(any());
 
         assertEquals(person, personService.getPersonById(1));
@@ -79,13 +79,13 @@ class PersonServiceTest {
     @Test
     void addPersonPositiveTest() {
         ArgumentCaptor<String> stringCaptor = ArgumentCaptor.forClass(String.class);
-        ArgumentCaptor<Person> personCaptor = ArgumentCaptor.forClass(Person.class);
+        ArgumentCaptor<PersonEntity> personCaptor = ArgumentCaptor.forClass(PersonEntity.class);
         PersonDto personDto = new PersonDto();
         PassportDto passportDto = new PassportDto();
         passportDto.setSeries("1111");
         passportDto.setNumber("222222");
         personDto.setPassportDto(passportDto);
-        Person person = new Person();
+        PersonEntity person = new PersonEntity();
         person.setName("Test");
 
         doReturn(false).when(personRepositoryMock)
@@ -104,9 +104,9 @@ class PersonServiceTest {
 
     @Test
     void addPersonHasNoPassportTest() {
-        ArgumentCaptor<Person> personCaptor = ArgumentCaptor.forClass(Person.class);
+        ArgumentCaptor<PersonEntity> personCaptor = ArgumentCaptor.forClass(PersonEntity.class);
         PersonDto personDto = new PersonDto();
-        Person person = new Person();
+        PersonEntity person = new PersonEntity();
         person.setName("Test");
 
         doReturn(person).when(personDtoMapperImplMock).toPerson(any(PersonDto.class));
@@ -145,7 +145,7 @@ class PersonServiceTest {
 
     @Test
     void editPersonByIdPositiveTest() {
-        ArgumentCaptor<Person> personCaptor = ArgumentCaptor.forClass(Person.class);
+        ArgumentCaptor<PersonEntity> personCaptor = ArgumentCaptor.forClass(PersonEntity.class);
         ArgumentCaptor<PersonDto> personDtoCaptor = ArgumentCaptor.forClass(PersonDto.class);
         PersonDto changedPersonDto = new PersonDto();
         PassportDto passportDto = new PassportDto();
@@ -153,7 +153,7 @@ class PersonServiceTest {
         passportDto.setNumber("222222");
         changedPersonDto.setPassportDto(passportDto);
 
-        Person person = new Person();
+        PersonEntity person = new PersonEntity();
         person.setName("Test");
 
         doReturn(false).when(personRepositoryMock)
@@ -177,9 +177,9 @@ class PersonServiceTest {
 
     @Test
     void editPersonByIdHasNoPassportFindPersonWithIdTest() {
-        ArgumentCaptor<Person> personCaptor = ArgumentCaptor.forClass(Person.class);
+        ArgumentCaptor<PersonEntity> personCaptor = ArgumentCaptor.forClass(PersonEntity.class);
         ArgumentCaptor<PersonDto> personDtoCaptor = ArgumentCaptor.forClass(PersonDto.class);
-        Person person = new Person();
+        PersonEntity person = new PersonEntity();
         person.setName("Test");
         PersonDto personDto = new PersonDto();
         personDto.setName("Test2");
@@ -218,7 +218,7 @@ class PersonServiceTest {
 
     @Test
     void updatePersonAssignVehicleNoVehicleFoundTest() {
-        doReturn(Optional.of(new Person())).when(personRepositoryMock).findById(any());
+        doReturn(Optional.of(new PersonEntity())).when(personRepositoryMock).findById(any());
         doThrow(new ResourceNotFoundException("No vehicles")).when(vehicleServiceMock).getVehicleByVin(anyInt());
 
         var exception = assertThrows(ResourceNotFoundException.class,
@@ -229,16 +229,16 @@ class PersonServiceTest {
 
     @Test
     void updatePersonAssignVehiclePersonAlreadyHasVehiclesTest() {
-        ArgumentCaptor<Person> personCaptor = ArgumentCaptor.forClass(Person.class);
-        Vehicle baseVehicle = new Vehicle();
+        ArgumentCaptor<PersonEntity> personCaptor = ArgumentCaptor.forClass(PersonEntity.class);
+        VehicleEntity baseVehicle = new VehicleEntity();
         baseVehicle.setBrand("BMW");
         baseVehicle.setVin(1);
-        Vehicle assigningVehicle = new Vehicle();
+        VehicleEntity assigningVehicle = new VehicleEntity();
         assigningVehicle.setBrand("Lada");
         assigningVehicle.setVin(2);
-        HashSet<Vehicle> vehicles = new HashSet<>();
+        HashSet<VehicleEntity> vehicles = new HashSet<>();
         vehicles.add(baseVehicle);
-        Person person = new Person();
+        PersonEntity person = new PersonEntity();
         person.setVehicles(vehicles);
 
         doReturn(Optional.of(person)).when(personRepositoryMock).findById(any());
@@ -253,11 +253,11 @@ class PersonServiceTest {
 
     @Test
     void updatePersonAssignVehiclePersonVehiclesNullTest() {
-        ArgumentCaptor<Person> personCaptor = ArgumentCaptor.forClass(Person.class);
-        Vehicle assigningVehicle = new Vehicle();
+        ArgumentCaptor<PersonEntity> personCaptor = ArgumentCaptor.forClass(PersonEntity.class);
+        VehicleEntity assigningVehicle = new VehicleEntity();
         assigningVehicle.setBrand("Lada");
 
-        doReturn(Optional.of(new Person())).when(personRepositoryMock).findById(any());
+        doReturn(Optional.of(new PersonEntity())).when(personRepositoryMock).findById(any());
         doReturn(assigningVehicle).when(vehicleServiceMock).getVehicleByVin(anyInt());
 
         personService.updatePersonAssignVehicle(1, 1);
@@ -279,7 +279,7 @@ class PersonServiceTest {
 
     @Test
     void updatePersonUnAssignVehiclePersonVehiclesNullTest() {
-        doReturn(Optional.of(new Person())).when(personRepositoryMock).findById(any());
+        doReturn(Optional.of(new PersonEntity())).when(personRepositoryMock).findById(any());
 
         var exception = assertThrows(RuntimeException.class,
                 () -> personService.updatePersonUnAssignVehicle(1, 1));
@@ -290,7 +290,7 @@ class PersonServiceTest {
 
     @Test
     void updatePersonUnAssignVehicleNoVehicleFoundTest() {
-        Person person = new Person();
+        PersonEntity person = new PersonEntity();
         person.setVehicles(new HashSet<>());
 
         doReturn(Optional.of(person)).when(personRepositoryMock).findById(any());
@@ -304,17 +304,17 @@ class PersonServiceTest {
 
     @Test
     void updatePersonUnAssignVehiclePersonHasVehiclesPositiveTest() {
-        ArgumentCaptor<Person> personCaptor = ArgumentCaptor.forClass(Person.class);
-        Vehicle baseVehicle1 = new Vehicle();
+        ArgumentCaptor<PersonEntity> personCaptor = ArgumentCaptor.forClass(PersonEntity.class);
+        VehicleEntity baseVehicle1 = new VehicleEntity();
         baseVehicle1.setBrand("BMW");
         baseVehicle1.setVin(1);
-        Vehicle baseVehicle2 = new Vehicle();
+        VehicleEntity baseVehicle2 = new VehicleEntity();
         baseVehicle2.setBrand("Lada");
         baseVehicle2.setVin(2);
-        HashSet<Vehicle> vehicles = new HashSet<>();
+        HashSet<VehicleEntity> vehicles = new HashSet<>();
         vehicles.add(baseVehicle1);
         vehicles.add(baseVehicle2);
-        Person person = new Person();
+        PersonEntity person = new PersonEntity();
         person.setVehicles(vehicles);
 
         doReturn(Optional.of(person)).when(personRepositoryMock).findById(any());
@@ -328,11 +328,11 @@ class PersonServiceTest {
 
     @Test
     void getPersonVehiclesByPersonIdPositiveTest() {
-        Vehicle baseVehicle = new Vehicle();
+        VehicleEntity baseVehicle = new VehicleEntity();
         baseVehicle.setBrand("Lada");
-        HashSet<Vehicle> vehicles = new HashSet<>();
+        HashSet<VehicleEntity> vehicles = new HashSet<>();
         vehicles.add(baseVehicle);
-        Person person = new Person();
+        PersonEntity person = new PersonEntity();
         person.setVehicles(vehicles);
 
         doReturn(Optional.of(person)).when(personRepositoryMock).findById(any());
@@ -350,7 +350,7 @@ class PersonServiceTest {
 
     @Test
     void getPersonByPassportPositiveTest() {
-        Person person = new Person();
+        PersonEntity person = new PersonEntity();
         person.setName("Test");
 
         doReturn(Optional.of(person)).when(personRepositoryMock).findPersonByPassportSeriesAndPassportNumber(anyString(), anyString());
@@ -370,11 +370,11 @@ class PersonServiceTest {
 
     @Test
     void getPersonVehiclesByPassportPositiveTest() {
-        Vehicle baseVehicle = new Vehicle();
+        VehicleEntity baseVehicle = new VehicleEntity();
         baseVehicle.setBrand("Lada");
-        HashSet<Vehicle> vehicles = new HashSet<>();
+        HashSet<VehicleEntity> vehicles = new HashSet<>();
         vehicles.add(baseVehicle);
-        Person person = new Person();
+        PersonEntity person = new PersonEntity();
         person.setVehicles(vehicles);
 
         doReturn(Optional.of(person)).when(personRepositoryMock).findPersonByPassportSeriesAndPassportNumber(anyString(), anyString());

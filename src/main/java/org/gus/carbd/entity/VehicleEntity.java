@@ -23,7 +23,7 @@ import java.util.Set;
 @ToString
 @Entity
 @Table(name = "vehicle", schema = "public", catalog = "postgres")
-public class Vehicle {
+public class VehicleEntity {
 
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
@@ -41,14 +41,14 @@ public class Vehicle {
     @ToString.Exclude
     @ManyToMany(mappedBy = "vehicles")
     @JsonBackReference
-    private Set<Person> people;
+    private Set<PersonEntity> people;
 
     @Override
     public boolean equals(final Object o) {
         if (o == null) return false;
         if (o == this) return true;
-        if (!(o instanceof Vehicle)) return false;
-        final Vehicle other = (Vehicle) o;
+        if (!(o instanceof VehicleEntity)) return false;
+        final VehicleEntity other = (VehicleEntity) o;
         if (!other.canEqual(this)) return false;
         final Object this$vin = this.getVin();
         final Object other$vin = other.getVin();
@@ -57,7 +57,7 @@ public class Vehicle {
     }
 
     protected boolean canEqual(final Object other) {
-        return other instanceof Vehicle;
+        return other instanceof VehicleEntity;
     }
 
     @Override

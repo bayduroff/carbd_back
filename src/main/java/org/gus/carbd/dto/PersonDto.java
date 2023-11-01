@@ -3,7 +3,7 @@ package org.gus.carbd.dto;
 import lombok.AllArgsConstructor;
 import lombok.Data;
 import lombok.NoArgsConstructor;
-import org.gus.carbd.entity.Vehicle;
+import org.gus.carbd.entity.VehicleEntity;
 
 import java.util.Set;
 
@@ -16,5 +16,5 @@ public class PersonDto {
     private String name;
     private String surname;
     private String patronymic;
-    private Set<Vehicle> vehicles;
+    private Set<VehicleEntity> vehicles;
 }

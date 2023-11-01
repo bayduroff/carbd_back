@@ -1,7 +1,7 @@
 package org.gus.carbd.mapper;
 
 import org.gus.carbd.dto.VehicleDto;
-import org.gus.carbd.entity.Vehicle;
+import org.gus.carbd.entity.VehicleEntity;
 import org.mapstruct.InjectionStrategy;
 import org.mapstruct.Mapper;
 import org.mapstruct.MappingTarget;
@@ -16,13 +16,13 @@ import java.util.Set;
         unmappedSourcePolicy = ReportingPolicy.ERROR)
 public interface VehicleDtoMapper {
 
-    Vehicle toVehicle(VehicleDto vehicleDto);
+    VehicleEntity toVehicle(VehicleDto vehicleDto);
 
-    VehicleDto toVehicleDto(Vehicle vehicle);
+    VehicleDto toVehicleDto(VehicleEntity vehicle);
 
-    List<VehicleDto> toVehicleDtoList(List<Vehicle> vehicles);
+    List<VehicleDto> toVehicleDtoList(List<VehicleEntity> vehicles);
 
-    Set<VehicleDto> toVehicleDtoSet(Set<Vehicle> vehicles);
+    Set<VehicleDto> toVehicleDtoSet(Set<VehicleEntity> vehicles);
 
-    void updateVehicle(@MappingTarget Vehicle vehicle, VehicleDto changedVehicleDto);
+    void updateVehicle(@MappingTarget VehicleEntity vehicle, VehicleDto changedVehicleDto);
 }

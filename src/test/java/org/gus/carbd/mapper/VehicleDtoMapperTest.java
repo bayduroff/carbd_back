@@ -1,9 +1,9 @@
 package org.gus.carbd.mapper;
 
 import org.gus.carbd.dto.VehicleDto;
-import org.gus.carbd.entity.Passport;
-import org.gus.carbd.entity.Person;
-import org.gus.carbd.entity.Vehicle;
+import org.gus.carbd.entity.PassportEntity;
+import org.gus.carbd.entity.PersonEntity;
+import org.gus.carbd.entity.VehicleEntity;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
 import org.mockito.InjectMocks;
@@ -26,8 +26,8 @@ class VehicleDtoMapperTest {
 
     @Test
     void toVehicleDtoAllDataTest() {
-        Set<Person> personSet = preparePersonSet();
-        Vehicle vehicle = new Vehicle(1, "test", "test1", 123, personSet);
+        Set<PersonEntity> personSet = preparePersonSet();
+        VehicleEntity vehicle = new VehicleEntity(1, "test", "test1", 123, personSet);
         var result = vehicleDtoMapper.toVehicleDto(vehicle);
         assertEquals(1, result.getVin());
         assertEquals("test", result.getBrand());
@@ -38,7 +38,7 @@ class VehicleDtoMapperTest {
 
     @Test
     void toVehicleDtoPartOfDataTest() {
-        Vehicle vehicle = new Vehicle(1, null, "test1", 123, null);
+        VehicleEntity vehicle = new VehicleEntity(1, null, "test1", 123, null);
         var result = vehicleDtoMapper.toVehicleDto(vehicle);
         assertEquals(1, result.getVin());
         assertEquals("test1", result.getModel());
@@ -55,7 +55,7 @@ class VehicleDtoMapperTest {
 
     @Test
     void toVehicleAllDataTest() {
-        Set<Person> personSet = preparePersonSet();
+        Set<PersonEntity> personSet = preparePersonSet();
         VehicleDto vehicleDto = new VehicleDto(1, "test", "test1", 123, personSet);
         var result = vehicleDtoMapper.toVehicle(vehicleDto);
         assertEquals(1, result.getVin());
@@ -72,9 +72,9 @@ class VehicleDtoMapperTest {
 
     @Test
     void toVehicleDtoListAllDataTest() {
-        Vehicle vehicle = new Vehicle(1, "test", "test1", 123, null);
-        Vehicle vehicle2 = new Vehicle(2, "test2", "test2", 321, preparePersonSet());
-        List<Vehicle> vehicleList = List.of(vehicle, vehicle2);
+        VehicleEntity vehicle = new VehicleEntity(1, "test", "test1", 123, null);
+        VehicleEntity vehicle2 = new VehicleEntity(2, "test2", "test2", 321, preparePersonSet());
+        List<VehicleEntity> vehicleList = List.of(vehicle, vehicle2);
 
         var result = vehicleDtoMapper.toVehicleDtoList(vehicleList);
 
@@ -94,7 +94,7 @@ class VehicleDtoMapperTest {
 
         assertEquals(vehicleSet.size(), result.size());
         var resultList = result.stream().sorted(Comparator.comparing(VehicleDto::getVin)).toList();
-        var personList = vehicleSet.stream().sorted(Comparator.comparing(Vehicle::getVin)).toList();
+        var personList = vehicleSet.stream().sorted(Comparator.comparing(VehicleEntity::getVin)).toList();
         assertLists(personList, resultList);
     }
 
@@ -105,7 +105,7 @@ class VehicleDtoMapperTest {
 
     @Test
     void updateVehicleFullChangeTest() {
-        Vehicle vehicle = new Vehicle(1, "test", "test1", 123, null);
+        VehicleEntity vehicle = new VehicleEntity(1, "test", "test1", 123, null);
         VehicleDto changedDto = new VehicleDto(2, "changeTest", "changeTest1", 321,
                 Collections.emptySet());
         vehicleDtoMapper.updateVehicle(vehicle, changedDto);
@@ -118,7 +118,7 @@ class VehicleDtoMapperTest {
 
     @Test
     void updateVehiclePartOfDataChangeTest() {
-        Vehicle vehicle = new Vehicle(1, "test", "test1", 123, Collections.emptySet());
+        VehicleEntity vehicle = new VehicleEntity(1, "test", "test1", 123, Collections.emptySet());
         VehicleDto changedDto = new VehicleDto(null, "changeTest", null, 321,
                 null);
         vehicleDtoMapper.updateVehicle(vehicle, changedDto);
@@ -131,7 +131,7 @@ class VehicleDtoMapperTest {
 
     @Test
     void updateVehicleNoChangeTest() {
-        Vehicle vehicle = new Vehicle(1, "test", "test1", 123, Collections.emptySet());
+        VehicleEntity vehicle = new VehicleEntity(1, "test", "test1", 123, Collections.emptySet());
         VehicleDto changedDto = new VehicleDto();
         vehicleDtoMapper.updateVehicle(vehicle, changedDto);
         assertEquals(1, vehicle.getVin());
@@ -141,27 +141,27 @@ class VehicleDtoMapperTest {
         assertEquals(Collections.emptySet(), vehicle.getPeople());
     }
 
-    private Set<Vehicle> prepareVehicleSet() {
-        Vehicle vehicle1 = new Vehicle(1, "test", "test1", 123, Collections.emptySet());
-        Vehicle vehicle2 = new Vehicle(2, "test2", "test2", 321, Collections.emptySet());
-        Set<Vehicle> vehicleSet = new HashSet<>();
+    private Set<VehicleEntity> prepareVehicleSet() {
+        VehicleEntity vehicle1 = new VehicleEntity(1, "test", "test1", 123, Collections.emptySet());
+        VehicleEntity vehicle2 = new VehicleEntity(2, "test2", "test2", 321, Collections.emptySet());
+        Set<VehicleEntity> vehicleSet = new HashSet<>();
         vehicleSet.add(vehicle1);
         vehicleSet.add(vehicle2);
         return vehicleSet;
     }
 
-    private Set<Person> preparePersonSet() {
-        Person person = new Person(1, "Test", "Testov",
-                "Testovich", new Passport(), null);
-        Person person2 = new Person(2, "Test2", "Testov2",
-                "Testovich2", new Passport(), null);
-        Set<Person> personSet = new HashSet<>();
+    private Set<PersonEntity> preparePersonSet() {
+        PersonEntity person = new PersonEntity(1, "Test", "Testov",
+                "Testovich", new PassportEntity(), null);
+        PersonEntity person2 = new PersonEntity(2, "Test2", "Testov2",
+                "Testovich2", new PassportEntity(), null);
+        Set<PersonEntity> personSet = new HashSet<>();
         personSet.add(person);
         personSet.add(person2);
         return personSet;
     }
 
-    private void assertLists(List<Vehicle> vehicleList, List<VehicleDto> vehicleDtoList) {
+    private void assertLists(List<VehicleEntity> vehicleList, List<VehicleDto> vehicleDtoList) {
         for (int i = 0; i < vehicleDtoList.size(); i++) {
             assertEquals(vehicleList.get(i).getVin(), vehicleDtoList.get(i).getVin());
             assertEquals(vehicleList.get(i).getBrand(), vehicleDtoList.get(i).getBrand());

@@ -3,8 +3,8 @@ package org.gus.carbd.controllers;
 import lombok.RequiredArgsConstructor;
 import org.gus.carbd.dto.PersonDto;
 import org.gus.carbd.dto.VehicleDto;
-import org.gus.carbd.entity.Person;
-import org.gus.carbd.entity.Vehicle;
+import org.gus.carbd.entity.PersonEntity;
+import org.gus.carbd.entity.VehicleEntity;
 import org.gus.carbd.mapper.PersonDtoMapper;
 import org.gus.carbd.mapper.VehicleDtoMapper;
 import org.gus.carbd.service.PersonService;
@@ -34,13 +34,13 @@ public class PersonController {
 
     @GetMapping()
     public List<PersonDto> getPeopleList() {
-        List<Person> peopleList = personService.getPeopleList();
+        List<PersonEntity> peopleList = personService.getPeopleList();
         return personDtoMapper.toPersonDtoList(peopleList);
     }
 
     @GetMapping("/{id}")
     public PersonDto getPersonById(@PathVariable("id") int id) {
-        Person person = personService.getPersonById(id);
+        PersonEntity person = personService.getPersonById(id);
         return personDtoMapper.toPersonDto(person);
     }
 
@@ -61,7 +61,7 @@ public class PersonController {
 
     @GetMapping("/{id}/vehicles")
     public Set<VehicleDto> getPersonVehiclesByPersonId(@PathVariable("id") int id) {
-        Set<Vehicle> vehicleSet = personService.getPersonVehiclesByPersonId(id);
+        Set<VehicleEntity> vehicleSet = personService.getPersonVehiclesByPersonId(id);
         return vehicleDtoMapper.toVehicleDtoSet(vehicleSet);
     }
 
@@ -80,14 +80,14 @@ public class PersonController {
     @GetMapping("/search")
     public PersonDto getPersonByPassport(@RequestParam String series,
                                          @RequestParam String number) {
-        Person person = personService.getPersonByPassport(series, number);
+        PersonEntity person = personService.getPersonByPassport(series, number);
         return personDtoMapper.toPersonDto(person);
     }
 
     @GetMapping("/search/vehicles")
     public Set<VehicleDto> getPersonVehiclesByPassport(@RequestParam String series,
                                                        @RequestParam String number) {
-        Set<Vehicle> vehicleSet = personService.getPersonVehiclesByPassport(series, number);
+        Set<VehicleEntity> vehicleSet = personService.getPersonVehiclesByPassport(series, number);
         return vehicleDtoMapper.toVehicleDtoSet(vehicleSet);
     }
 }

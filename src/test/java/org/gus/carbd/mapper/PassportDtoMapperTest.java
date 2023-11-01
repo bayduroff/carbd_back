@@ -1,7 +1,7 @@
 package org.gus.carbd.mapper;
 
 import org.gus.carbd.dto.PassportDto;
-import org.gus.carbd.entity.Passport;
+import org.gus.carbd.entity.PassportEntity;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
 import org.mockito.InjectMocks;
@@ -45,7 +45,7 @@ class PassportDtoMapperTest {
 
     @Test
     void updatePassportAllDataTest() {
-        Passport passport = preparePassport();
+        PassportEntity passport = preparePassport();
 
         passportDtoMapper.updatePassport(passport, new PassportDto("3333", "4444"));
         assertEquals(1, passport.getPassport_id());
@@ -56,7 +56,7 @@ class PassportDtoMapperTest {
 
     @Test
     void updatePassportPartOfDataTest() {
-        Passport passport = preparePassport();
+        PassportEntity passport = preparePassport();
 
         passportDtoMapper.updatePassport(passport, new PassportDto(null, "4444"));
         assertEquals(1, passport.getPassport_id());
@@ -67,7 +67,7 @@ class PassportDtoMapperTest {
 
     @Test
     void updatePassportNullDataTest() {
-        Passport passport = preparePassport();
+        PassportEntity passport = preparePassport();
 
         passportDtoMapper.updatePassport(passport, null);
         assertEquals(1, passport.getPassport_id());
@@ -76,7 +76,7 @@ class PassportDtoMapperTest {
         assertNull(passport.getPerson());
     }
 
-    private Passport preparePassport() {
-        return new Passport(1, "1111", "2222", null);
+    private PassportEntity preparePassport() {
+        return new PassportEntity(1, "1111", "2222", null);
     }
 }

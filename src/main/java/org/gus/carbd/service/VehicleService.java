@@ -4,8 +4,8 @@ import jakarta.transaction.Transactional;
 import lombok.RequiredArgsConstructor;
 import org.gus.carbd.dto.PassportDto;
 import org.gus.carbd.dto.VehicleDto;
-import org.gus.carbd.entity.Person;
-import org.gus.carbd.entity.Vehicle;
+import org.gus.carbd.entity.PersonEntity;
+import org.gus.carbd.entity.VehicleEntity;
 import org.gus.carbd.exception.ResourceNotFoundException;
 import org.gus.carbd.mapper.PassportDtoMapper;
 import org.gus.carbd.mapper.VehicleDtoMapper;
@@ -26,13 +26,13 @@ public class VehicleService {
 
     private final PassportDtoMapper passportDtoMapper;
 
-    public List<Vehicle> getVehiclesList() {
+    public List<VehicleEntity> getVehiclesList() {
         return vehicleRepository.findAll();
     }
 
-    public Vehicle getVehicleByVin(int vin) {
-        Optional<Vehicle> result = vehicleRepository.findById(vin);
-        Vehicle vehicle;
+    public VehicleEntity getVehicleByVin(int vin) {
+        Optional<VehicleEntity> result = vehicleRepository.findById(vin);
+        VehicleEntity vehicle;
         if (result.isPresent()) {
             vehicle = result.get();
         } else {
@@ -55,8 +55,8 @@ public class VehicleService {
         vehicleDtoMapper.updateVehicle(getVehicleByVin(vin), changedVehicleDto);
     }
 
-    public Set<Person> getVehicleOwners(int vin) {
-        Vehicle vehicle = getVehicleByVin(vin);
+    public Set<PersonEntity> getVehicleOwners(int vin) {
+        VehicleEntity vehicle = getVehicleByVin(vin);
 
         return vehicle.getPeople();
     }
@@ -67,7 +67,7 @@ public class VehicleService {
             throw new RuntimeException("There is no owners for vehicle with vin - " + vin);
         }
         List<PassportDto> passportList = new ArrayList<>();
-        for (Person person : peopleSet) {
+        for (PersonEntity person : peopleSet) {
             var passport = passportDtoMapper.toPassportDto(person.getPassport());
             passportList.add(passport);
         }

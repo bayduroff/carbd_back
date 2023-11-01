@@ -25,7 +25,7 @@ import java.util.Set;
 @ToString
 @Entity
 @Table(name = "person")
-public class Person {
+public class PersonEntity {
 
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
@@ -43,7 +43,7 @@ public class Person {
 
     @ToString.Exclude
     @OneToOne(mappedBy = "person", cascade = CascadeType.ALL)
-    private Passport passport;
+    private PassportEntity passport;
 
     @ToString.Exclude
     @ManyToMany
@@ -52,14 +52,14 @@ public class Person {
             joinColumns = @JoinColumn(name = "person_id"),
             inverseJoinColumns = @JoinColumn(name = "vehicle_vin"))
     @JsonBackReference
-    private Set<Vehicle> vehicles;
+    private Set<VehicleEntity> vehicles;
 
     @Override
     public boolean equals(final Object o) {
         if (o == null) return false;
         if (o == this) return true;
-        if (!(o instanceof Person)) return false;
-        final Person other = (Person) o;
+        if (!(o instanceof PersonEntity)) return false;
+        final PersonEntity other = (PersonEntity) o;
         if (!other.canEqual(this)) return false;
         final Object this$id = this.getId();
         final Object other$id = other.getId();
@@ -68,7 +68,7 @@ public class Person {
     }
 
     protected boolean canEqual(final Object other) {
-        return other instanceof Person;
+        return other instanceof PersonEntity;
     }
 
     @Override
