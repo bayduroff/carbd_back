@@ -3,9 +3,6 @@ package org.gus.carbd.dto;
 import lombok.AllArgsConstructor;
 import lombok.Data;
 import lombok.NoArgsConstructor;
-import org.gus.carbd.entity.PersonEntity;
-
-import java.util.Set;
 
 @Data
 @NoArgsConstructor
@@ -15,5 +12,4 @@ public class VehicleDto {
     private String brand;
     private String model;
     private Integer year;
-    private Set<PersonEntity> people;
 }

@@ -1,10 +1,10 @@
 package org.gus.carbd.controllers;
 
 import lombok.RequiredArgsConstructor;
+import org.gus.carbd.domain.Person;
+import org.gus.carbd.domain.Vehicle;
 import org.gus.carbd.dto.PersonDto;
 import org.gus.carbd.dto.VehicleDto;
-import org.gus.carbd.entity.PersonEntity;
-import org.gus.carbd.entity.VehicleEntity;
 import org.gus.carbd.mapper.PersonDtoMapper;
 import org.gus.carbd.mapper.VehicleDtoMapper;
 import org.gus.carbd.service.PersonService;
@@ -19,7 +19,6 @@ import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.bind.annotation.RestController;
 
 import java.util.List;
-import java.util.Set;
 
 @RestController
 @RequiredArgsConstructor
@@ -34,19 +33,20 @@ public class PersonController {
 
     @GetMapping()
     public List<PersonDto> getPeopleList() {
-        List<PersonEntity> peopleList = personService.getPeopleList();
+        List<Person> peopleList = personService.getPeopleList();
         return personDtoMapper.toPersonDtoList(peopleList);
     }
 
     @GetMapping("/{id}")
     public PersonDto getPersonById(@PathVariable("id") int id) {
-        PersonEntity person = personService.getPersonById(id);
+        Person person = personService.getPersonById(id);
         return personDtoMapper.toPersonDto(person);
     }
 
     @PostMapping("/add")
-    public void addPerson(@RequestBody PersonDto personDTO) {
-        personService.addPerson(personDTO);
+    public void addPerson(@RequestBody PersonDto personDto) {
+        Person person = personDtoMapper.toPerson(personDto);
+        personService.addPerson(person);
     }
 
     @DeleteMapping("/{id}")
@@ -55,14 +55,15 @@ public class PersonController {
     }
 
     @PatchMapping("/{id}/edit")
-    public void editPersonById(@PathVariable("id") int id, @RequestBody PersonDto changedPerson) {
+    public void editPersonById(@PathVariable("id") int id, @RequestBody PersonDto changedPersonDto) {
+        Person changedPerson = personDtoMapper.toPerson(changedPersonDto);
         personService.editPersonById(id, changedPerson);
     }
 
     @GetMapping("/{id}/vehicles")
-    public Set<VehicleDto> getPersonVehiclesByPersonId(@PathVariable("id") int id) {
-        Set<VehicleEntity> vehicleSet = personService.getPersonVehiclesByPersonId(id);
-        return vehicleDtoMapper.toVehicleDtoSet(vehicleSet);
+    public List<VehicleDto> getPersonVehiclesByPersonId(@PathVariable("id") int id) {
+        List<Vehicle> vehicleList = personService.getPersonVehiclesByPersonId(id);
+        return vehicleDtoMapper.toVehicleDtoList(vehicleList);
     }
 
     @PostMapping("/{id}/vehicles/{vin}")
@@ -80,14 +81,14 @@ public class PersonController {
     @GetMapping("/search")
     public PersonDto getPersonByPassport(@RequestParam String series,
                                          @RequestParam String number) {
-        PersonEntity person = personService.getPersonByPassport(series, number);
+        Person person = personService.getPersonByPassport(series, number);
         return personDtoMapper.toPersonDto(person);
     }
 
     @GetMapping("/search/vehicles")
-    public Set<VehicleDto> getPersonVehiclesByPassport(@RequestParam String series,
-                                                       @RequestParam String number) {
-        Set<VehicleEntity> vehicleSet = personService.getPersonVehiclesByPassport(series, number);
-        return vehicleDtoMapper.toVehicleDtoSet(vehicleSet);
+    public List<VehicleDto> getPersonVehiclesByPassport(@RequestParam String series,
+                                                        @RequestParam String number) {
+        List<Vehicle> vehicleList = personService.getPersonVehiclesByPassport(series, number);
+        return vehicleDtoMapper.toVehicleDtoList(vehicleList);
     }
 }

@@ -1,8 +1,8 @@
 package org.gus.carbd.entity;
 
-import com.fasterxml.jackson.annotation.JsonBackReference;
 import jakarta.persistence.Column;
 import jakarta.persistence.Entity;
+import jakarta.persistence.FetchType;
 import jakarta.persistence.GeneratedValue;
 import jakarta.persistence.GenerationType;
 import jakarta.persistence.Id;
@@ -14,6 +14,7 @@ import lombok.NoArgsConstructor;
 import lombok.Setter;
 import lombok.ToString;
 
+import java.util.Objects;
 import java.util.Set;
 
 @Getter
@@ -39,8 +40,7 @@ public class VehicleEntity {
     private Integer year;
 
     @ToString.Exclude
-    @ManyToMany(mappedBy = "vehicles")
-    @JsonBackReference
+    @ManyToMany(mappedBy = "vehicles", fetch = FetchType.LAZY)
     private Set<PersonEntity> people;
 
     @Override
@@ -52,8 +52,7 @@ public class VehicleEntity {
         if (!other.canEqual(this)) return false;
         final Object this$vin = this.getVin();
         final Object other$vin = other.getVin();
-        if (this$vin == null ? other$vin != null : !this$vin.equals(other$vin)) return false;
-        return true;
+        return Objects.equals(this$vin, other$vin);
     }
 
     protected boolean canEqual(final Object other) {

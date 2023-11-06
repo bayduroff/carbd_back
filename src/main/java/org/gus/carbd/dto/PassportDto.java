@@ -8,6 +8,7 @@ import lombok.NoArgsConstructor;
 @AllArgsConstructor
 @NoArgsConstructor
 public class PassportDto {
+    private Integer passport_id;
     private String series;
     private String number;
 }
