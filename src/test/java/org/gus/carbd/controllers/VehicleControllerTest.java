@@ -1,16 +1,16 @@
 package org.gus.carbd.controllers;
 
 import com.fasterxml.jackson.databind.ObjectMapper;
+import org.gus.carbd.domain.Vehicle;
 import org.gus.carbd.dto.PassportDto;
 import org.gus.carbd.dto.PersonDto;
 import org.gus.carbd.dto.VehicleDto;
-import org.gus.carbd.entity.Vehicle;
+import org.gus.carbd.mapper.PassportDtoMapperImpl;
 import org.gus.carbd.mapper.PersonDtoMapperImpl;
 import org.gus.carbd.mapper.VehicleDtoMapperImpl;
 import org.gus.carbd.service.VehicleService;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
-import org.mockito.Answers;
 import org.mockito.junit.jupiter.MockitoExtension;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.autoconfigure.web.servlet.WebMvcTest;
@@ -18,9 +18,7 @@ import org.springframework.boot.test.mock.mockito.MockBean;
 import org.springframework.http.MediaType;
 import org.springframework.test.web.servlet.MockMvc;
 
-import java.util.HashSet;
 import java.util.List;
-import java.util.Set;
 
 import static org.hamcrest.Matchers.containsInAnyOrder;
 import static org.mockito.ArgumentMatchers.any;
@@ -46,23 +44,21 @@ class VehicleControllerTest {
     private ObjectMapper objectMapper;
 
     @MockBean
-    private VehicleService vehicleService;
-
+    private VehicleService vehicleServiceMock;
     @MockBean
-    private PersonDtoMapperImpl personDtoMapper;
-
-    @MockBean(answer = Answers.CALLS_REAL_METHODS)
-    private VehicleDtoMapperImpl vehicleDtoMapper;
+    private VehicleDtoMapperImpl vehicleDtoMapperMock;
+    @MockBean
+    private PersonDtoMapperImpl personDtoMapperMock;
+    @MockBean
+    private PassportDtoMapperImpl passportDtoMapperMock;
 
     @Test
     void getVehiclesListTest() throws Exception {
-        Vehicle vehicle = new Vehicle(1, "BMW", "X5",
-                1234, null);
-        Vehicle vehicle2 = new Vehicle(2, "Lada", "Kalina",
-                4321, null);
-        List<Vehicle> vehicleList = List.of(vehicle, vehicle2);
+        VehicleDto vehicleDto1 = new VehicleDto(1, "BMW", "X5", 1234);
+        VehicleDto vehicleDto2 = new VehicleDto(2, "Lada", "Kalina", 4321);
+        List<VehicleDto> vehicleDtoList = List.of(vehicleDto1, vehicleDto2);
 
-        doReturn(vehicleList).when(vehicleService).getVehiclesList();
+        doReturn(vehicleDtoList).when(vehicleDtoMapperMock).toVehicleDtoList(any());
 
         mockMvc.perform(get(BASE_URL))
                 .andExpect(status().isOk())
@@ -72,7 +68,7 @@ class VehicleControllerTest {
 
     @Test
     void getVehicleByVinTest() throws Exception {
-        doReturn(prepareVehicle()).when(vehicleService).getVehicleByVin(anyInt());
+        doReturn(prepareVehicleDto()).when(vehicleDtoMapperMock).toVehicleDto(any());
 
         mockMvc.perform(get((BASE_URL.concat("/1"))))
                 .andExpect(status().isOk())
@@ -81,7 +77,7 @@ class VehicleControllerTest {
 
     @Test
     void addVehicleTest() throws Exception {
-        doNothing().when(vehicleService).addVehicle(any(VehicleDto.class));
+        doNothing().when(vehicleServiceMock).addVehicle(any(Vehicle.class));
 
         mockMvc.perform(post((BASE_URL.concat("/add")))
                         .contentType(MediaType.APPLICATION_JSON)
@@ -91,7 +87,7 @@ class VehicleControllerTest {
 
     @Test
     void deleteVehicleByVinTest() throws Exception {
-        doNothing().when(vehicleService).deleteVehicleByVin(anyInt());
+        doNothing().when(vehicleServiceMock).deleteVehicleByVin(anyInt());
 
         mockMvc.perform(delete((BASE_URL.concat("/1"))))
                 .andExpect(status().isOk());
@@ -99,7 +95,7 @@ class VehicleControllerTest {
 
     @Test
     void editVehicleByVinTest() throws Exception {
-        doNothing().when(vehicleService).editVehicleByVin(anyInt(), any(VehicleDto.class));
+        doNothing().when(vehicleServiceMock).editVehicleByVin(anyInt(), any(Vehicle.class));
 
         mockMvc.perform(patch((BASE_URL.concat("/1/edit")))
                         .contentType(MediaType.APPLICATION_JSON)
@@ -109,40 +105,33 @@ class VehicleControllerTest {
 
     @Test
     void getVehicleOwnersTest() throws Exception {
-        PersonDto personDto1 = new PersonDto(1, new PassportDto(), "Test", "Testov",
-                "Testovich", null);
-        PersonDto personDto2 = new PersonDto(2, new PassportDto(), "Test2", "Testov2",
-                "Testovich2", null);
-        Set<PersonDto> personDtoSet = new HashSet<>();
-        personDtoSet.add(personDto1);
-        personDtoSet.add(personDto2);
+        PersonDto personDto1 = new PersonDto(1, new PassportDto(), "Test",
+                "Testov", "Testovich");
+        PersonDto personDto2 = new PersonDto(2, new PassportDto(), "Test2",
+                "Testov2", "Testovich2");
+        List<PersonDto> personDtoList = List.of(personDto1, personDto2);
 
-        doReturn(personDtoSet).when(personDtoMapper).toPersonDtoSet(any());
+        doReturn(personDtoList).when(personDtoMapperMock).toPersonDtoList(any());
 
-        mockMvc.perform(get((BASE_URL.concat("/1/people"))))
-                .andExpect(status().isOk())
+        mockMvc.perform(get((BASE_URL.concat("/1/people")))).andExpect(status().isOk())
                 .andExpect(jsonPath("$.[*].name", containsInAnyOrder("Test", "Test2")));
     }
 
     @Test
     void getVehicleOwnersPassportsTest() throws Exception {
-        List<String> passportList = List.of("12345", "67890");
+        PassportDto passportDto1 = new PassportDto(1, "1234", "567890");
+        PassportDto passportDto2 = new PassportDto(2, "0987", "654321");
+        List<PassportDto> passportDtoList = List.of(passportDto1, passportDto2);
 
-        doReturn(passportList).when(vehicleService).getVehicleOwnersPassports(anyInt());
+        doReturn(passportDtoList).when(passportDtoMapperMock).toPassportDtoList(any());
 
         mockMvc.perform(get((BASE_URL.concat("/1/peoplepass"))))
                 .andExpect(status().isOk())
-                .andExpect(jsonPath("$.[*]", containsInAnyOrder("12345", "67890")));
-    }
-
-    private Vehicle prepareVehicle() {
-        return new Vehicle(1, "BMW", "X5",
-                1234, null);
+                .andExpect(jsonPath("$.[*].series", containsInAnyOrder("1234", "0987")))
+                .andExpect(jsonPath("$.[*].number", containsInAnyOrder("567890", "654321")));
     }
 
     private VehicleDto prepareVehicleDto() {
-        return new VehicleDto(1, "BMW", "X5",
-                1234, null);
+        return new VehicleDto(1, "BMW", "X5", 1234);
     }
-
 }

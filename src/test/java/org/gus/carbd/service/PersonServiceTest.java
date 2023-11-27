@@ -1,31 +1,38 @@
 package org.gus.carbd.service;
 
-import org.gus.carbd.dto.PassportDto;
-import org.gus.carbd.dto.PersonDto;
-import org.gus.carbd.entity.Passport;
-import org.gus.carbd.entity.Person;
-import org.gus.carbd.entity.Vehicle;
+import org.gus.carbd.domain.Passport;
+import org.gus.carbd.domain.Person;
+import org.gus.carbd.domain.Vehicle;
+import org.gus.carbd.entity.PassportEntity;
+import org.gus.carbd.entity.PersonEntity;
+import org.gus.carbd.entity.VehicleEntity;
 import org.gus.carbd.exception.ResourceNotFoundException;
-import org.gus.carbd.mapper.PersonDtoMapperImpl;
+import org.gus.carbd.mapper.PersonDomainMapperImpl;
+import org.gus.carbd.mapper.VehicleDomainMapperImpl;
 import org.gus.carbd.repository.PersonRepository;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
-import org.mockito.Answers;
 import org.mockito.ArgumentCaptor;
 import org.mockito.InjectMocks;
 import org.mockito.Mock;
 import org.mockito.junit.jupiter.MockitoExtension;
 
 import java.util.ArrayList;
+import java.util.Collections;
+import java.util.Comparator;
 import java.util.HashSet;
 import java.util.List;
 import java.util.Optional;
+import java.util.Set;
 
 import static org.junit.jupiter.api.Assertions.assertEquals;
+import static org.junit.jupiter.api.Assertions.assertFalse;
+import static org.junit.jupiter.api.Assertions.assertNull;
 import static org.junit.jupiter.api.Assertions.assertThrows;
 import static org.junit.jupiter.api.Assertions.assertTrue;
 import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.ArgumentMatchers.anyInt;
+import static org.mockito.ArgumentMatchers.anyList;
 import static org.mockito.ArgumentMatchers.anyString;
 import static org.mockito.Mockito.doNothing;
 import static org.mockito.Mockito.doReturn;
@@ -41,98 +48,123 @@ class PersonServiceTest {
 
     @Mock
     private PersonRepository personRepositoryMock;
-
-    @Mock(answer = Answers.CALLS_REAL_METHODS)
-    private PersonDtoMapperImpl personDtoMapperImplMock;
-
     @Mock
     private VehicleService vehicleServiceMock;
+    @Mock
+    private PersonDomainMapperImpl personDomainMapperMock;
+    @Mock
+    private VehicleDomainMapperImpl vehicleDomainMapperMock;
+
+    @Test
+    void getPersonEntityByIdPositiveTest() {
+        PersonEntity personEntity = new PersonEntity(1, "Test",
+                "Testov", "Testovich", new PassportEntity(), null);
+        doReturn(Optional.of(personEntity)).when(personRepositoryMock).findById(any());
+
+        assertEntities(personEntity, personService.getPersonEntityById(1));
+    }
+
+    @Test
+    void getPersonEntityByIdNegativeTest() {
+        doReturn(Optional.empty()).when(personRepositoryMock).findById(any());
+
+        assertThrows(ResourceNotFoundException.class, () -> personService.getPersonEntityById(1));
+    }
+
+    @Test
+    void getPersonEntityByPassportPositiveTest() {
+        PersonEntity personEntity = new PersonEntity();
+        personEntity.setName("Test");
+
+        doReturn(Optional.of(personEntity)).when(personRepositoryMock)
+                .findPersonByPassportSeriesAndPassportNumber(anyString(), anyString());
+
+        var result = personService.getPersonEntityByPassport("123", "456");
+        assertEntities(personEntity, result);
+    }
+
+    @Test
+    void getPersonEntityByPassportNegativeTest() {
+        doReturn(Optional.empty()).when(personRepositoryMock)
+                .findPersonByPassportSeriesAndPassportNumber(anyString(), anyString());
+
+        var exception = assertThrows(ResourceNotFoundException.class,
+                () -> personService.getPersonEntityByPassport("123", "456"));
+        assertEquals("Did not find person with passport - 123456", exception.getMessage());
+    }
 
     @Test
     void getPeopleListTest() {
         List<Person> people = new ArrayList<>();
         Person person = new Person(1, "Test",
-                "Testov", "Testovich", new Passport(), null);
+                "Testov", "Testovich", new Passport());
         people.add(person);
 
-        doReturn(people).when(personRepositoryMock).findAll();
-
+        doReturn(new ArrayList<PersonEntity>()).when(personRepositoryMock).findAll();
+        doReturn(people).when(personDomainMapperMock).toPersonList(anyList());
         assertEquals(people, personService.getPeopleList());
     }
 
     @Test
-    void getPersonByIdPositiveTest() {
+    void getPersonByIdTest() {
         Person person = new Person(1, "Test",
-                "Testov", "Testovich", new Passport(), null);
-        doReturn(Optional.of(person)).when(personRepositoryMock).findById(any());
+                "Testov", "Testovich", new Passport());
+
+        doReturn(Optional.of(new PersonEntity())).when(personRepositoryMock).findById(any());
+        doReturn(person).when(personDomainMapperMock).toPerson(any());
 
         assertEquals(person, personService.getPersonById(1));
     }
 
     @Test
-    void getPersonByIdNegativeTest() {
-        doReturn(Optional.empty()).when(personRepositoryMock).findById(any());
-
-        assertThrows(ResourceNotFoundException.class, () -> personService.getPersonById(1));
-    }
-
-    @Test
     void addPersonPositiveTest() {
         ArgumentCaptor<String> stringCaptor = ArgumentCaptor.forClass(String.class);
-        ArgumentCaptor<Person> personCaptor = ArgumentCaptor.forClass(Person.class);
-        PersonDto personDto = new PersonDto();
-        PassportDto passportDto = new PassportDto();
-        passportDto.setSeries("1111");
-        passportDto.setNumber("222222");
-        personDto.setPassportDto(passportDto);
+        ArgumentCaptor<PersonEntity> personEntityCaptor = ArgumentCaptor.forClass(PersonEntity.class);
         Person person = new Person();
-        person.setName("Test");
+        person.setPassport(new Passport(1, "1111", "2222"));
+        PersonEntity personEntity = new PersonEntity();
+        personEntity.setName("Test");
 
         doReturn(false).when(personRepositoryMock)
                 .existsByPassportSeriesAndPassportNumber(anyString(), anyString());
-        doReturn(person).when(personDtoMapperImplMock).toPerson(any(PersonDto.class));
+        doReturn(personEntity).when(personDomainMapperMock).toPersonEntity(person);
 
-        personService.addPerson(personDto);
+        personService.addPerson(person);
         verify(personRepositoryMock).existsByPassportSeriesAndPassportNumber(stringCaptor.capture(),
                 stringCaptor.capture());
         var capturedArgs = stringCaptor.getAllValues();
         assertEquals("1111", capturedArgs.get(0));
-        assertEquals("222222", capturedArgs.get(1));
-        verify(personRepositoryMock).save(personCaptor.capture());
-        assertEquals("Test", personCaptor.getValue().getName());
+        assertEquals("2222", capturedArgs.get(1));
+        verify(personRepositoryMock).save(personEntityCaptor.capture());
+        assertEquals("Test", personEntityCaptor.getValue().getName());
     }
 
     @Test
     void addPersonHasNoPassportTest() {
-        ArgumentCaptor<Person> personCaptor = ArgumentCaptor.forClass(Person.class);
-        PersonDto personDto = new PersonDto();
+        ArgumentCaptor<PersonEntity> personEntityCaptor = ArgumentCaptor.forClass(PersonEntity.class);
         Person person = new Person();
-        person.setName("Test");
+        PersonEntity personEntity = new PersonEntity();
+        personEntity.setName("Test");
 
-        doReturn(person).when(personDtoMapperImplMock).toPerson(any(PersonDto.class));
+        doReturn(personEntity).when(personDomainMapperMock).toPersonEntity(person);
 
-        personService.addPerson(personDto);
-
+        personService.addPerson(person);
         verify(personRepositoryMock, never()).existsByPassportSeriesAndPassportNumber(anyString(), anyString());
-        verify(personRepositoryMock).save(personCaptor.capture());
-        assertEquals("Test", personCaptor.getValue().getName());
+        verify(personRepositoryMock).save(personEntityCaptor.capture());
+        assertEquals("Test", personEntityCaptor.getValue().getName());
     }
 
     @Test
     void addPersonPassportExistsInDbTest() {
-        PersonDto personDto = new PersonDto();
-        PassportDto passportDto = new PassportDto();
-        passportDto.setSeries("1111");
-        passportDto.setNumber("222222");
-        personDto.setPassportDto(passportDto);
+        Person person = new Person();
+        person.setPassport(new Passport());
 
         doReturn(true).when(personRepositoryMock)
                 .existsByPassportSeriesAndPassportNumber(anyString(), anyString());
 
-        assertThrows(RuntimeException.class, () -> personService.addPerson(personDto));
+        assertThrows(RuntimeException.class, () -> personService.addPerson(person));
         verify(personRepositoryMock, never()).save(any());
     }
-
 
     @Test
     void deletePersonByIdTest() {
@@ -145,64 +177,105 @@ class PersonServiceTest {
 
     @Test
     void editPersonByIdPositiveTest() {
+        ArgumentCaptor<PersonEntity> personEntityCaptor = ArgumentCaptor.forClass(PersonEntity.class);
         ArgumentCaptor<Person> personCaptor = ArgumentCaptor.forClass(Person.class);
-        ArgumentCaptor<PersonDto> personDtoCaptor = ArgumentCaptor.forClass(PersonDto.class);
-        PersonDto changedPersonDto = new PersonDto();
-        PassportDto passportDto = new PassportDto();
-        passportDto.setSeries("1111");
-        passportDto.setNumber("222222");
-        changedPersonDto.setPassportDto(passportDto);
+        PersonEntity personEntity = new PersonEntity();
+        personEntity.setName("Test");
+        Person changedPerson = new Person();
+        changedPerson.setPassport(new Passport());
 
-        Person person = new Person();
-        person.setName("Test");
-
+        doReturn(Optional.of(personEntity)).when(personRepositoryMock).findById(any());
         doReturn(false).when(personRepositoryMock)
-                .existsByPassportSeriesAndPassportNumber(anyString(), anyString());
-        doReturn(Optional.of(person)).when(personRepositoryMock).findById(any());
-        doNothing().when(personDtoMapperImplMock).updatePerson(any(), any());
+                .existsByPassportSeriesAndPassportNumber(any(), any());
+        doNothing().when(personDomainMapperMock).updatePersonEntity(any(), any());
 
-        personService.editPersonById(1, changedPersonDto);
-        verify(personDtoMapperImplMock).updatePerson(personCaptor.capture(), personDtoCaptor.capture());
-        assertEquals(person, personCaptor.getValue());
-        assertEquals(changedPersonDto, personDtoCaptor.getValue());
+        personService.editPersonById(1, changedPerson);
+        verify(personDomainMapperMock).updatePersonEntity(personEntityCaptor.capture(), personCaptor.capture());
+        assertEquals(personEntity.getName(), personEntityCaptor.getValue().getName());
+        assertEquals(changedPerson, personCaptor.getValue());
     }
 
     @Test
     void editPersonByIdHasNoPassportNoPersonWithIdTest() {
         doReturn(Optional.empty()).when(personRepositoryMock).findById(any());
 
-        assertThrows(ResourceNotFoundException.class, () -> personService.editPersonById(1, new PersonDto()));
-        verify(personDtoMapperImplMock, never()).updatePerson(any(), any());
+        assertThrows(ResourceNotFoundException.class, () -> personService.editPersonById(1, new Person()));
+        verify(personDomainMapperMock, never()).updatePersonEntity(any(), any());
     }
 
     @Test
     void editPersonByIdHasNoPassportFindPersonWithIdTest() {
+        ArgumentCaptor<PersonEntity> personEntityCaptor = ArgumentCaptor.forClass(PersonEntity.class);
         ArgumentCaptor<Person> personCaptor = ArgumentCaptor.forClass(Person.class);
-        ArgumentCaptor<PersonDto> personDtoCaptor = ArgumentCaptor.forClass(PersonDto.class);
-        Person person = new Person();
-        person.setName("Test");
-        PersonDto personDto = new PersonDto();
-        personDto.setName("Test2");
+        PersonEntity personEntity = new PersonEntity();
+        personEntity.setName("Test");
+        Person changedPerson = new Person();
+        changedPerson.setName("Test2");
 
-        doNothing().when(personDtoMapperImplMock).updatePerson(any(), any());
-        doReturn(Optional.of(person)).when(personRepositoryMock).findById(any());
+        doReturn(Optional.of(personEntity)).when(personRepositoryMock).findById(any());
+        doNothing().when(personDomainMapperMock).updatePersonEntity(any(), any());
 
-        personService.editPersonById(1, personDto);
-        verify(personDtoMapperImplMock).updatePerson(personCaptor.capture(), personDtoCaptor.capture());
-        assertEquals(person, personCaptor.getValue());
-        assertEquals(personDto, personDtoCaptor.getValue());
+        personService.editPersonById(1, changedPerson);
+        verify(personDomainMapperMock).updatePersonEntity(personEntityCaptor.capture(), personCaptor.capture());
+        assertEquals(personEntity.getName(), personEntityCaptor.getValue().getName());
+        assertEquals(changedPerson, personCaptor.getValue());
     }
 
     @Test
     void editPersonByIdPassportExistsInDbTest() {
-        PersonDto changedPersonDto = new PersonDto();
-        changedPersonDto.setPassportDto(new PassportDto());
+        Person changedPerson = new Person();
+        changedPerson.setPassport(new Passport());
 
         doReturn(true).when(personRepositoryMock)
                 .existsByPassportSeriesAndPassportNumber(any(), any());
 
-        assertThrows(RuntimeException.class, () -> personService.editPersonById(1, changedPersonDto));
-        verify(personDtoMapperImplMock, never()).updatePerson(any(), any());
+        assertThrows(RuntimeException.class, () -> personService.editPersonById(1, changedPerson));
+        verify(personDomainMapperMock, never()).updatePersonEntity(any(), any());
+    }
+
+    @Test
+    void getPersonVehiclesByPersonIdPositiveTest() {
+        ArgumentCaptor<List<VehicleEntity>> listCaptor = ArgumentCaptor.forClass(List.class);
+
+        VehicleEntity baseVehicleEntity = new VehicleEntity();
+        baseVehicleEntity.setBrand("Lada");
+        Set<VehicleEntity> vehicles = new HashSet<>();
+        vehicles.add(baseVehicleEntity);
+        PersonEntity personEntity = new PersonEntity();
+        personEntity.setVehicles(vehicles);
+
+        Vehicle expectedVehicle = new Vehicle();
+        expectedVehicle.setBrand("BMW");
+        List<Vehicle> expectedVehicleList = new ArrayList<>();
+        expectedVehicleList.add(expectedVehicle);
+
+        doReturn(Optional.of(personEntity)).when(personRepositoryMock).findById(any());
+        doReturn(expectedVehicleList).when(vehicleDomainMapperMock).toVehicleList(anyList());
+
+        var result = personService.getPersonVehiclesByPersonId(1);
+        verify(vehicleDomainMapperMock).toVehicleList(listCaptor.capture());
+        assertSetAndList(vehicles, listCaptor.getValue());
+        assertEquals(expectedVehicle.getBrand(), result.get(0).getBrand());
+    }
+
+    @Test
+    void getPersonVehiclesByPersonIdVehiclesNullTest() {
+        ArgumentCaptor<List<VehicleEntity>> listCaptor = ArgumentCaptor.forClass(List.class);
+
+        doReturn(Optional.of(new PersonEntity())).when(personRepositoryMock).findById(any());
+        doReturn(null).when(vehicleDomainMapperMock).toVehicleList(any());
+
+        assertNull(personService.getPersonVehiclesByPersonId(1));
+        verify(vehicleDomainMapperMock).toVehicleList(listCaptor.capture());
+        assertNull(listCaptor.getValue());
+    }
+
+    @Test
+    void getPersonVehiclesByPersonIdNegativeTest() {
+        doReturn(Optional.empty()).when(personRepositoryMock).findById(any());
+
+        assertThrows(ResourceNotFoundException.class, () -> personService.getPersonVehiclesByPersonId(1));
+        verify(vehicleDomainMapperMock, never()).toVehicleList(anyList());
     }
 
     @Test
@@ -212,14 +285,14 @@ class PersonServiceTest {
         var exception = assertThrows(ResourceNotFoundException.class,
                 () -> personService.updatePersonAssignVehicle(1, 1));
         assertEquals("Did not find person with id - 1", exception.getMessage());
-        verify(vehicleServiceMock, never()).getVehicleByVin(anyInt());
+        verify(vehicleServiceMock, never()).getVehicleEntityByVin(anyInt());
         verify(personRepositoryMock, never()).save(any());
     }
 
     @Test
     void updatePersonAssignVehicleNoVehicleFoundTest() {
-        doReturn(Optional.of(new Person())).when(personRepositoryMock).findById(any());
-        doThrow(new ResourceNotFoundException("No vehicles")).when(vehicleServiceMock).getVehicleByVin(anyInt());
+        doReturn(Optional.of(new PersonEntity())).when(personRepositoryMock).findById(any());
+        doThrow(new ResourceNotFoundException("No vehicles")).when(vehicleServiceMock).getVehicleEntityByVin(anyInt());
 
         var exception = assertThrows(ResourceNotFoundException.class,
                 () -> personService.updatePersonAssignVehicle(1, 1));
@@ -229,20 +302,16 @@ class PersonServiceTest {
 
     @Test
     void updatePersonAssignVehiclePersonAlreadyHasVehiclesTest() {
-        ArgumentCaptor<Person> personCaptor = ArgumentCaptor.forClass(Person.class);
-        Vehicle baseVehicle = new Vehicle();
-        baseVehicle.setBrand("BMW");
-        baseVehicle.setVin(1);
-        Vehicle assigningVehicle = new Vehicle();
-        assigningVehicle.setBrand("Lada");
-        assigningVehicle.setVin(2);
-        HashSet<Vehicle> vehicles = new HashSet<>();
+        ArgumentCaptor<PersonEntity> personCaptor = ArgumentCaptor.forClass(PersonEntity.class);
+        VehicleEntity baseVehicle = new VehicleEntity(1, "BMW", null, null, null);
+        VehicleEntity assigningVehicle = new VehicleEntity(2, "Lada", null, null, null);
+        HashSet<VehicleEntity> vehicles = new HashSet<>();
         vehicles.add(baseVehicle);
-        Person person = new Person();
+        PersonEntity person = new PersonEntity();
         person.setVehicles(vehicles);
 
         doReturn(Optional.of(person)).when(personRepositoryMock).findById(any());
-        doReturn(assigningVehicle).when(vehicleServiceMock).getVehicleByVin(anyInt());
+        doReturn(assigningVehicle).when(vehicleServiceMock).getVehicleEntityByVin(anyInt());
 
         personService.updatePersonAssignVehicle(1, 1);
         verify(personRepositoryMock).save(personCaptor.capture());
@@ -253,12 +322,12 @@ class PersonServiceTest {
 
     @Test
     void updatePersonAssignVehiclePersonVehiclesNullTest() {
-        ArgumentCaptor<Person> personCaptor = ArgumentCaptor.forClass(Person.class);
-        Vehicle assigningVehicle = new Vehicle();
+        ArgumentCaptor<PersonEntity> personCaptor = ArgumentCaptor.forClass(PersonEntity.class);
+        VehicleEntity assigningVehicle = new VehicleEntity();
         assigningVehicle.setBrand("Lada");
 
-        doReturn(Optional.of(new Person())).when(personRepositoryMock).findById(any());
-        doReturn(assigningVehicle).when(vehicleServiceMock).getVehicleByVin(anyInt());
+        doReturn(Optional.of(new PersonEntity())).when(personRepositoryMock).findById(any());
+        doReturn(assigningVehicle).when(vehicleServiceMock).getVehicleEntityByVin(anyInt());
 
         personService.updatePersonAssignVehicle(1, 1);
         verify(personRepositoryMock).save(personCaptor.capture());
@@ -273,28 +342,28 @@ class PersonServiceTest {
         var exception = assertThrows(ResourceNotFoundException.class,
                 () -> personService.updatePersonUnAssignVehicle(1, 1));
         assertEquals("Did not find person with id - 1", exception.getMessage());
-        verify(vehicleServiceMock, never()).getVehicleByVin(anyInt());
+        verify(vehicleServiceMock, never()).getVehicleEntityByVin(anyInt());
         verify(personRepositoryMock, never()).save(any());
     }
 
     @Test
     void updatePersonUnAssignVehiclePersonVehiclesNullTest() {
-        doReturn(Optional.of(new Person())).when(personRepositoryMock).findById(any());
+        doReturn(Optional.of(new PersonEntity())).when(personRepositoryMock).findById(any());
 
         var exception = assertThrows(RuntimeException.class,
                 () -> personService.updatePersonUnAssignVehicle(1, 1));
         assertEquals("Person with id - 1 has no vehicles to unassign", exception.getMessage());
-        verify(vehicleServiceMock, never()).getVehicleByVin(anyInt());
+        verify(vehicleServiceMock, never()).getVehicleEntityByVin(anyInt());
         verify(personRepositoryMock, never()).save(any());
     }
 
     @Test
     void updatePersonUnAssignVehicleNoVehicleFoundTest() {
-        Person person = new Person();
-        person.setVehicles(new HashSet<>());
+        PersonEntity personEntity = new PersonEntity();
+        personEntity.setVehicles(new HashSet<>());
 
-        doReturn(Optional.of(person)).when(personRepositoryMock).findById(any());
-        doThrow(new ResourceNotFoundException("No vehicles")).when(vehicleServiceMock).getVehicleByVin(anyInt());
+        doReturn(Optional.of(personEntity)).when(personRepositoryMock).findById(any());
+        doThrow(new ResourceNotFoundException("No vehicles")).when(vehicleServiceMock).getVehicleEntityByVin(anyInt());
 
         var exception = assertThrows(ResourceNotFoundException.class,
                 () -> personService.updatePersonAssignVehicle(1, 1));
@@ -304,21 +373,17 @@ class PersonServiceTest {
 
     @Test
     void updatePersonUnAssignVehiclePersonHasVehiclesPositiveTest() {
-        ArgumentCaptor<Person> personCaptor = ArgumentCaptor.forClass(Person.class);
-        Vehicle baseVehicle1 = new Vehicle();
-        baseVehicle1.setBrand("BMW");
-        baseVehicle1.setVin(1);
-        Vehicle baseVehicle2 = new Vehicle();
-        baseVehicle2.setBrand("Lada");
-        baseVehicle2.setVin(2);
-        HashSet<Vehicle> vehicles = new HashSet<>();
+        ArgumentCaptor<PersonEntity> personCaptor = ArgumentCaptor.forClass(PersonEntity.class);
+        VehicleEntity baseVehicle1 = new VehicleEntity(1, "BMW", null, null, null);
+        VehicleEntity baseVehicle2 = new VehicleEntity(2, "Lada", null, null, null);
+        HashSet<VehicleEntity> vehicles = new HashSet<>();
         vehicles.add(baseVehicle1);
         vehicles.add(baseVehicle2);
-        Person person = new Person();
+        PersonEntity person = new PersonEntity();
         person.setVehicles(vehicles);
 
         doReturn(Optional.of(person)).when(personRepositoryMock).findById(any());
-        doReturn(baseVehicle2).when(vehicleServiceMock).getVehicleByVin(anyInt());
+        doReturn(baseVehicle2).when(vehicleServiceMock).getVehicleEntityByVin(anyInt());
 
         personService.updatePersonUnAssignVehicle(1, 1);
         verify(personRepositoryMock).save(personCaptor.capture());
@@ -327,60 +392,53 @@ class PersonServiceTest {
     }
 
     @Test
-    void getPersonVehiclesByPersonIdPositiveTest() {
-        Vehicle baseVehicle = new Vehicle();
-        baseVehicle.setBrand("Lada");
-        HashSet<Vehicle> vehicles = new HashSet<>();
-        vehicles.add(baseVehicle);
-        Person person = new Person();
-        person.setVehicles(vehicles);
+    void getPersonByPassportTest() {
+        Person person = new Person(1, "Test",
+                "Testov", "Testovich", new Passport());
+        doReturn(Optional.of(new PersonEntity()))
+                .when(personRepositoryMock).findPersonByPassportSeriesAndPassportNumber(any(), any());
+        doReturn(person).when(personDomainMapperMock).toPerson(any());
 
-        doReturn(Optional.of(person)).when(personRepositoryMock).findById(any());
-
-        var result = personService.getPersonVehiclesByPersonId(1);
-        assertEquals(vehicles, result);
-    }
-
-    @Test
-    void getPersonVehiclesByPersonIdNegativeTest() {
-        doReturn(Optional.empty()).when(personRepositoryMock).findById(any());
-
-        assertThrows(ResourceNotFoundException.class, () -> personService.getPersonVehiclesByPersonId(1));
-    }
-
-    @Test
-    void getPersonByPassportPositiveTest() {
-        Person person = new Person();
-        person.setName("Test");
-
-        doReturn(Optional.of(person)).when(personRepositoryMock).findPersonByPassportSeriesAndPassportNumber(anyString(), anyString());
-
-        var result = personService.getPersonByPassport("123", "456");
-        assertEquals(person, result);
-    }
-
-    @Test
-    void getPersonByPassportNegativeTest() {
-        doReturn(Optional.empty()).when(personRepositoryMock).findPersonByPassportSeriesAndPassportNumber(anyString(), anyString());
-
-        var exception = assertThrows(ResourceNotFoundException.class,
-                () -> personService.getPersonByPassport("123", "456"));
-        assertEquals("Did not find person with passport - 123456", exception.getMessage());
+        assertEquals(person, personService.getPersonByPassport("1111", "2222"));
     }
 
     @Test
     void getPersonVehiclesByPassportPositiveTest() {
-        Vehicle baseVehicle = new Vehicle();
-        baseVehicle.setBrand("Lada");
-        HashSet<Vehicle> vehicles = new HashSet<>();
-        vehicles.add(baseVehicle);
-        Person person = new Person();
-        person.setVehicles(vehicles);
+        ArgumentCaptor<List<VehicleEntity>> listCaptor = ArgumentCaptor.forClass(List.class);
 
-        doReturn(Optional.of(person)).when(personRepositoryMock).findPersonByPassportSeriesAndPassportNumber(anyString(), anyString());
+        VehicleEntity baseVehicle = new VehicleEntity();
+        baseVehicle.setBrand("Lada");
+        HashSet<VehicleEntity> vehicles = new HashSet<>();
+        vehicles.add(baseVehicle);
+        PersonEntity personEntity = new PersonEntity();
+        personEntity.setVehicles(vehicles);
+
+        Vehicle expectedVehicle = new Vehicle();
+        expectedVehicle.setBrand("BMW");
+        List<Vehicle> expectedVehicleList = new ArrayList<>();
+        expectedVehicleList.add(expectedVehicle);
+
+        doReturn(Optional.of(personEntity)).when(personRepositoryMock)
+                .findPersonByPassportSeriesAndPassportNumber(anyString(), anyString());
+        doReturn(expectedVehicleList).when(vehicleDomainMapperMock).toVehicleList(anyList());
 
         var result = personService.getPersonVehiclesByPassport("123", "456");
-        assertEquals(vehicles, result);
+        verify(vehicleDomainMapperMock).toVehicleList(listCaptor.capture());
+        assertSetAndList(vehicles, listCaptor.getValue());
+        assertEquals(expectedVehicle.getBrand(), result.get(0).getBrand());
+    }
+
+    @Test
+    void getPersonVehiclesByPassportVehiclesNullTest() {
+        ArgumentCaptor<List<VehicleEntity>> listCaptor = ArgumentCaptor.forClass(List.class);
+
+        doReturn(Optional.of(new PersonEntity())).when(personRepositoryMock)
+                .findPersonByPassportSeriesAndPassportNumber(anyString(), anyString());
+        doReturn(null).when(vehicleDomainMapperMock).toVehicleList(any());
+
+        assertNull(personService.getPersonVehiclesByPassport("123", "456"));
+        verify(vehicleDomainMapperMock).toVehicleList(listCaptor.capture());
+        assertNull(listCaptor.getValue());
     }
 
     @Test
@@ -390,6 +448,80 @@ class PersonServiceTest {
         var exception = assertThrows(ResourceNotFoundException.class,
                 () -> personService.getPersonVehiclesByPassport("123", "456"));
         assertEquals("Did not find person with passport - 123456", exception.getMessage());
+        verify(vehicleDomainMapperMock, never()).toVehicleList(anyList());
+    }
 
+    @Test
+    void personWithPassportExistsInBaseTrue() {
+        Person person = new Person();
+        person.setPassport(new Passport());
+
+        doReturn(true).when(personRepositoryMock).existsByPassportSeriesAndPassportNumber(any(), any());
+
+        assertTrue(personService.personWithPassportExistsInBase(person));
+    }
+
+    @Test
+    void personWithPassportExistsInBaseFalse() {
+        Person person = new Person();
+        person.setPassport(new Passport());
+
+        doReturn(false).when(personRepositoryMock).existsByPassportSeriesAndPassportNumber(any(), any());
+
+        assertFalse(personService.personWithPassportExistsInBase(person));
+    }
+
+    @Test
+    void personWithPassportExistsInBasePassportNull() {
+        assertFalse(personService.personWithPassportExistsInBase(new Person()));
+    }
+
+    @Test
+    void getVehiclesListVehiclesExist() {
+        PersonEntity personEntity = new PersonEntity();
+        Set<VehicleEntity> vehicleEntitySet = new HashSet<>();
+        VehicleEntity vehicleEntity1 = new VehicleEntity(1, "BMW", null, null, null);
+        VehicleEntity vehicleEntity2 = new VehicleEntity(2, "Lada", null, null, null);
+        vehicleEntitySet.add(vehicleEntity1);
+        vehicleEntitySet.add(vehicleEntity2);
+        personEntity.setVehicles(vehicleEntitySet);
+
+        var result = personService.getVehiclesList(personEntity);
+        assertTrue(vehicleEntitySet.containsAll(result));
+        assertEquals(vehicleEntitySet.size(), result.size());
+    }
+
+    @Test
+    void getVehiclesListVehiclesNull() {
+        assertNull(personService.getVehiclesList(new PersonEntity()));
+    }
+
+    @Test
+    void getVehiclesListVehiclesEmpty() {
+        PersonEntity personEntity = new PersonEntity();
+        personEntity.setVehicles(Collections.emptySet());
+
+        assertTrue(personService.getVehiclesList(personEntity).isEmpty());
+    }
+
+    private void assertSetAndList(Set<VehicleEntity> vehicles, List<VehicleEntity> vehicleEntityList) {
+        var vehiclesToListSorted = vehicles.stream()
+                .sorted(Comparator.comparing(VehicleEntity::getVin)).toList();
+        var vehicleEntityArrayList = new ArrayList<>(vehicleEntityList);
+        vehicleEntityArrayList.sort(Comparator.comparing(VehicleEntity::getVin));
+
+        assertEquals(vehiclesToListSorted.get(0).getVin(), vehicleEntityArrayList.get(0).getVin());
+        assertEquals(vehiclesToListSorted.get(0).getBrand(), vehicleEntityArrayList.get(0).getBrand());
+        assertEquals(vehiclesToListSorted.get(0).getModel(), vehicleEntityArrayList.get(0).getModel());
+        assertEquals(vehiclesToListSorted.get(0).getYear(), vehicleEntityArrayList.get(0).getYear());
+    }
+
+    private void assertEntities(PersonEntity personEntity1, PersonEntity personEntity2) {
+        assertEquals(personEntity1.getId(), personEntity2.getId());
+        assertEquals(personEntity1.getName(), personEntity2.getName());
+        assertEquals(personEntity1.getSurname(), personEntity2.getSurname());
+        assertEquals(personEntity1.getPatronymic(), personEntity2.getPatronymic());
+        assertEquals(personEntity1.getPassport(), personEntity2.getPassport());
+        assertEquals(personEntity1.getVehicles(), personEntity2.getVehicles());
     }
 }

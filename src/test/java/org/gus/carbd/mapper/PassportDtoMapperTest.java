@@ -1,14 +1,18 @@
 package org.gus.carbd.mapper;
 
+import org.gus.carbd.domain.Passport;
 import org.gus.carbd.dto.PassportDto;
-import org.gus.carbd.entity.Passport;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
 import org.mockito.InjectMocks;
 import org.mockito.junit.jupiter.MockitoExtension;
 
+import java.util.Collections;
+import java.util.List;
+
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertNull;
+import static org.junit.jupiter.api.Assertions.assertTrue;
 
 @ExtendWith(MockitoExtension.class)
 class PassportDtoMapperTest {
@@ -28,14 +32,12 @@ class PassportDtoMapperTest {
         assertNull(passportDtoMapper.toPassportDto(null));
     }
 
-
     @Test
     void toPassportAllDataTest() {
-        var result = passportDtoMapper.toPassport(new PassportDto("3333", "4444"));
+        var result = passportDtoMapper.toPassport(new PassportDto(1, "3333", "4444"));
         assertEquals("3333", result.getSeries());
         assertEquals("4444", result.getNumber());
-        assertNull(result.getPerson());
-        assertNull(result.getPassport_id());
+        assertEquals(1, result.getPassport_id());
     }
 
     @Test
@@ -44,39 +46,35 @@ class PassportDtoMapperTest {
     }
 
     @Test
-    void updatePassportAllDataTest() {
-        Passport passport = preparePassport();
+    void toPassportDtoListAllDataTest() {
+        Passport passport1 = new Passport(1, "1111", "2222");
+        Passport passport2 = new Passport(2, "3333", "4444");
+        List<Passport> passportList = List.of(passport1, passport2);
 
-        passportDtoMapper.updatePassport(passport, new PassportDto("3333", "4444"));
-        assertEquals(1, passport.getPassport_id());
-        assertEquals("3333", passport.getSeries());
-        assertEquals("4444", passport.getNumber());
-        assertNull(passport.getPerson());
+        var result = passportDtoMapper.toPassportDtoList(passportList);
+        assertEquals(passportList.size(), result.size());
+        assertLists(passportList, result);
     }
 
     @Test
-    void updatePassportPartOfDataTest() {
-        Passport passport = preparePassport();
-
-        passportDtoMapper.updatePassport(passport, new PassportDto(null, "4444"));
-        assertEquals(1, passport.getPassport_id());
-        assertEquals("1111", passport.getSeries());
-        assertEquals("4444", passport.getNumber());
-        assertNull(passport.getPerson());
+    void toPassportDtoListEmptyListTest() {
+        assertTrue(passportDtoMapper.toPassportDtoList(Collections.emptyList()).isEmpty());
     }
 
     @Test
-    void updatePassportNullDataTest() {
-        Passport passport = preparePassport();
+    void toPassportDtoListNullDataTest() {
+        assertNull(passportDtoMapper.toPassportDtoList(null));
+    }
 
-        passportDtoMapper.updatePassport(passport, null);
-        assertEquals(1, passport.getPassport_id());
-        assertEquals("1111", passport.getSeries());
-        assertEquals("2222", passport.getNumber());
-        assertNull(passport.getPerson());
+    private void assertLists(List<Passport> passportList, List<PassportDto> passportDtoList) {
+        for (int i = 0; i < passportDtoList.size(); i++) {
+            assertEquals(passportList.get(i).getPassport_id(), passportDtoList.get(i).getPassport_id());
+            assertEquals(passportList.get(i).getSeries(), passportDtoList.get(i).getSeries());
+            assertEquals(passportList.get(i).getNumber(), passportDtoList.get(i).getNumber());
+        }
     }
 
     private Passport preparePassport() {
-        return new Passport(1, "1111", "2222", null);
+        return new Passport(1, "1111", "2222");
     }
 }

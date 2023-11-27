@@ -2,11 +2,13 @@ package org.gus.carbd.service;
 
 import jakarta.transaction.Transactional;
 import lombok.RequiredArgsConstructor;
-import org.gus.carbd.dto.PersonDto;
-import org.gus.carbd.entity.Person;
-import org.gus.carbd.entity.Vehicle;
+import org.gus.carbd.domain.Person;
+import org.gus.carbd.domain.Vehicle;
+import org.gus.carbd.entity.PersonEntity;
+import org.gus.carbd.entity.VehicleEntity;
 import org.gus.carbd.exception.ResourceNotFoundException;
-import org.gus.carbd.mapper.PersonDtoMapper;
+import org.gus.carbd.mapper.PersonDomainMapperImpl;
+import org.gus.carbd.mapper.VehicleDomainMapperImpl;
 import org.gus.carbd.repository.PersonRepository;
 import org.springframework.stereotype.Service;
 
@@ -21,31 +23,43 @@ public class PersonService {
 
     public final PersonRepository personRepository;
     public final VehicleService vehicleService;
-    private final PersonDtoMapper personDtoMapper;
+    private final PersonDomainMapperImpl personDomainMapper;
+    private final VehicleDomainMapperImpl vehicleDomainMapper;
 
-    public List<Person> getPeopleList() {
-        return personRepository.findAll();
-    }
-
-    public Person getPersonById(int id) {
-        Optional<Person> result = personRepository.findById(id);
-        Person person;
+    public PersonEntity getPersonEntityById(int id) {
+        Optional<PersonEntity> result = personRepository.findById(id);
         if (result.isPresent()) {
-            person = result.get();
+            return result.get();
         } else {
             throw new ResourceNotFoundException("Did not find person with id - " + id);
         }
-
-        return person;
     }
 
-    public void addPerson(PersonDto personDto) {
-        if (personWithPassportExistsInBase(personDto)) {
-            throw new RuntimeException("Person with passport: " + personDto.getPassportDto().getSeries()
-                    + personDto.getPassportDto().getNumber() + " already exists");
+    public PersonEntity getPersonEntityByPassport(String series, String number) {
+        Optional<PersonEntity> resultPerson = personRepository.findPersonByPassportSeriesAndPassportNumber(series, number);
+        if (resultPerson.isPresent()) {
+            return resultPerson.get();
+        } else {
+            throw new ResourceNotFoundException("Did not find person with passport - " + series + number);
         }
+    }
 
-        personRepository.save(personDtoMapper.toPerson(personDto));
+    public List<Person> getPeopleList() {
+        var personEntities = personRepository.findAll();
+        return personDomainMapper.toPersonList(personEntities);
+    }
+
+    public Person getPersonById(int id) {
+        return personDomainMapper.toPerson(getPersonEntityById(id));
+    }
+
+    public void addPerson(Person person) {
+        if (personWithPassportExistsInBase(person)) {
+            throw new RuntimeException("Person with passport: " + person.getPassport().getSeries()
+                    + person.getPassport().getNumber() + " already exists");
+        }
+        PersonEntity personEntity = personDomainMapper.toPersonEntity(person);
+        personRepository.save(personEntity);
     }
 
     public void deletePersonById(int id) {
@@ -53,67 +67,63 @@ public class PersonService {
     }
 
     @Transactional
-    public void editPersonById(int id, PersonDto changedPersonDto) {
-        if (personWithPassportExistsInBase(changedPersonDto)) {
-            throw new RuntimeException("Person with passport: " + changedPersonDto.getPassportDto().getSeries()
-                    + changedPersonDto.getPassportDto().getNumber() + " already exists");
+    public void editPersonById(int id, Person changedPerson) {
+        if (personWithPassportExistsInBase(changedPerson)) {
+            throw new RuntimeException("Person with passport: " + changedPerson.getPassport().getSeries()
+                    + changedPerson.getPassport().getNumber() + " already exists");
         }
 
-        personDtoMapper.updatePerson(getPersonById(id), changedPersonDto);
+        personDomainMapper.updatePersonEntity(getPersonEntityById(id), changedPerson);
+    }
+
+    public List<Vehicle> getPersonVehiclesByPersonId(int id) {
+        List<VehicleEntity> vehicleEntityList = getVehiclesList(getPersonEntityById(id));
+
+        return vehicleDomainMapper.toVehicleList(vehicleEntityList);
     }
 
     public void updatePersonAssignVehicle(int id, int vin) {
-        Person person = getPersonById(id);
-        Vehicle vehicle = vehicleService.getVehicleByVin(vin);
-        if (person.getVehicles() != null) {
-            person.getVehicles().add(vehicle);
+        PersonEntity personEntity = getPersonEntityById(id);
+        VehicleEntity vehicleEntity = vehicleService.getVehicleEntityByVin(vin);
+        if (personEntity.getVehicles() != null) {
+            personEntity.getVehicles().add(vehicleEntity);
         } else {
-            Set<Vehicle> vehicles = new HashSet<>();
-            vehicles.add(vehicle);
-            person.setVehicles(vehicles);
+            Set<VehicleEntity> vehicles = new HashSet<>();
+            vehicles.add(vehicleEntity);
+            personEntity.setVehicles(vehicles);
         }
 
-        personRepository.save(person);
+        personRepository.save(personEntity);
     }
 
     public void updatePersonUnAssignVehicle(int id, int vin) {
-        Person person = getPersonById(id);
-        if (person.getVehicles() == null) {
+        PersonEntity personEntity = getPersonEntityById(id);
+        if (personEntity.getVehicles() == null) {
             throw new RuntimeException("Person with id - " + id + " has no vehicles to unassign");
         }
-        Vehicle vehicle = vehicleService.getVehicleByVin(vin);
-        person.getVehicles().remove(vehicle);
+        VehicleEntity vehicleEntity = vehicleService.getVehicleEntityByVin(vin);
+        personEntity.getVehicles().remove(vehicleEntity);
 
-        personRepository.save(person);
-    }
-
-    public Set<Vehicle> getPersonVehiclesByPersonId(int id) {
-        Person person = getPersonById(id);
-
-        return person.getVehicles();
+        personRepository.save(personEntity);
     }
 
     public Person getPersonByPassport(String series, String number) {
-        Optional<Person> resultPerson = personRepository.findPersonByPassportSeriesAndPassportNumber(series, number);
-        Person person;
-        if (resultPerson.isPresent()) {
-            person = resultPerson.get();
-        } else {
-            throw new ResourceNotFoundException("Did not find person with passport - " + series + number);
-        }
-
-        return person;
+        return personDomainMapper.toPerson(getPersonEntityByPassport(series, number));
     }
 
-    public Set<Vehicle> getPersonVehiclesByPassport(String series, String number) {
-        Person person = getPersonByPassport(series, number);
+    public List<Vehicle> getPersonVehiclesByPassport(String series, String number) {
+        List<VehicleEntity> vehicleEntityList = getVehiclesList(getPersonEntityByPassport(series, number));
 
-        return person.getVehicles();
+        return vehicleDomainMapper.toVehicleList(vehicleEntityList);
     }
 
-    private boolean personWithPassportExistsInBase(PersonDto personDto) {
-        return personDto.getPassportDto() != null &&
-                personRepository.existsByPassportSeriesAndPassportNumber(personDto.getPassportDto().getSeries(),
-                        personDto.getPassportDto().getNumber());
+    protected boolean personWithPassportExistsInBase(Person person) {
+        return person.getPassport() != null &&
+                personRepository.existsByPassportSeriesAndPassportNumber(person.getPassport().getSeries(),
+                        person.getPassport().getNumber());
+    }
+
+    protected List<VehicleEntity> getVehiclesList(PersonEntity personEntity) {
+        return personEntity.getVehicles() != null ? personEntity.getVehicles().stream().toList() : null;
     }
 }

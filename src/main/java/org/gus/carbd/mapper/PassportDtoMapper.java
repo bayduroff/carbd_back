@@ -1,13 +1,13 @@
 package org.gus.carbd.mapper;
 
+import org.gus.carbd.domain.Passport;
 import org.gus.carbd.dto.PassportDto;
-import org.gus.carbd.entity.Passport;
 import org.mapstruct.InjectionStrategy;
 import org.mapstruct.Mapper;
-import org.mapstruct.Mapping;
-import org.mapstruct.MappingTarget;
 import org.mapstruct.NullValuePropertyMappingStrategy;
 import org.mapstruct.ReportingPolicy;
+
+import java.util.List;
 
 @Mapper(componentModel = "spring", nullValuePropertyMappingStrategy = NullValuePropertyMappingStrategy.IGNORE,
         injectionStrategy = InjectionStrategy.CONSTRUCTOR, unmappedTargetPolicy = ReportingPolicy.ERROR,
@@ -16,11 +16,7 @@ public interface PassportDtoMapper {
 
     PassportDto toPassportDto(Passport passport);
 
-    @Mapping(target = "passport_id", ignore = true)
-    @Mapping(target = "person", ignore = true)
-    Passport toPassport(PassportDto passportDto);
+    List<PassportDto> toPassportDtoList(List<Passport> passports);
 
-    @Mapping(target = "passport_id", ignore = true)
-    @Mapping(target = "person", ignore = true)
-    void updatePassport(@MappingTarget Passport passport, PassportDto changedPassportDto);
+    Passport toPassport(PassportDto passportDto);
 }

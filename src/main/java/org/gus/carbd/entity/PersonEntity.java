@@ -1,9 +1,9 @@
 package org.gus.carbd.entity;
 
-import com.fasterxml.jackson.annotation.JsonBackReference;
 import jakarta.persistence.CascadeType;
 import jakarta.persistence.Column;
 import jakarta.persistence.Entity;
+import jakarta.persistence.FetchType;
 import jakarta.persistence.GeneratedValue;
 import jakarta.persistence.GenerationType;
 import jakarta.persistence.Id;
@@ -17,6 +17,7 @@ import lombok.Data;
 import lombok.NoArgsConstructor;
 import lombok.ToString;
 
+import java.util.Objects;
 import java.util.Set;
 
 @Data
@@ -25,7 +26,7 @@ import java.util.Set;
 @ToString
 @Entity
 @Table(name = "person")
-public class Person {
+public class PersonEntity {
 
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
@@ -43,32 +44,30 @@ public class Person {
 
     @ToString.Exclude
     @OneToOne(mappedBy = "person", cascade = CascadeType.ALL)
-    private Passport passport;
+    private PassportEntity passport;
 
     @ToString.Exclude
-    @ManyToMany
+    @ManyToMany(fetch = FetchType.LAZY)
     @JoinTable(
             name = "person_vehicle",
             joinColumns = @JoinColumn(name = "person_id"),
             inverseJoinColumns = @JoinColumn(name = "vehicle_vin"))
-    @JsonBackReference
-    private Set<Vehicle> vehicles;
+    private Set<VehicleEntity> vehicles;
 
     @Override
     public boolean equals(final Object o) {
         if (o == null) return false;
         if (o == this) return true;
-        if (!(o instanceof Person)) return false;
-        final Person other = (Person) o;
+        if (!(o instanceof PersonEntity)) return false;
+        final PersonEntity other = (PersonEntity) o;
         if (!other.canEqual(this)) return false;
         final Object this$id = this.getId();
         final Object other$id = other.getId();
-        if (this$id == null ? other$id != null : !this$id.equals(other$id)) return false;
-        return true;
+        return Objects.equals(this$id, other$id);
     }
 
     protected boolean canEqual(final Object other) {
-        return other instanceof Person;
+        return other instanceof PersonEntity;
     }
 
     @Override

@@ -1,17 +1,16 @@
 package org.gus.carbd.service;
 
-import org.gus.carbd.dto.PassportDto;
-import org.gus.carbd.dto.VehicleDto;
-import org.gus.carbd.entity.Passport;
-import org.gus.carbd.entity.Person;
-import org.gus.carbd.entity.Vehicle;
+import org.gus.carbd.domain.Passport;
+import org.gus.carbd.domain.Person;
+import org.gus.carbd.domain.Vehicle;
+import org.gus.carbd.entity.PersonEntity;
+import org.gus.carbd.entity.VehicleEntity;
 import org.gus.carbd.exception.ResourceNotFoundException;
-import org.gus.carbd.mapper.PassportDtoMapperImpl;
-import org.gus.carbd.mapper.VehicleDtoMapperImpl;
+import org.gus.carbd.mapper.PersonDomainMapperImpl;
+import org.gus.carbd.mapper.VehicleDomainMapperImpl;
 import org.gus.carbd.repository.VehicleRepository;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
-import org.mockito.Answers;
 import org.mockito.ArgumentCaptor;
 import org.mockito.InjectMocks;
 import org.mockito.Mock;
@@ -22,10 +21,15 @@ import java.util.Collections;
 import java.util.HashSet;
 import java.util.List;
 import java.util.Optional;
+import java.util.Set;
 
 import static org.junit.jupiter.api.Assertions.assertEquals;
+import static org.junit.jupiter.api.Assertions.assertNull;
 import static org.junit.jupiter.api.Assertions.assertThrows;
+import static org.junit.jupiter.api.Assertions.assertTrue;
 import static org.mockito.ArgumentMatchers.any;
+import static org.mockito.ArgumentMatchers.anyList;
+import static org.mockito.Mockito.doCallRealMethod;
 import static org.mockito.Mockito.doReturn;
 import static org.mockito.Mockito.never;
 import static org.mockito.Mockito.verify;
@@ -38,52 +42,58 @@ class VehicleServiceTest {
 
     @Mock
     private VehicleRepository vehicleRepositoryMock;
-
-    @Mock(answer = Answers.CALLS_REAL_METHODS)
-    private VehicleDtoMapperImpl vehicleDtoMapperImplMock;
-
-    @Mock(answer = Answers.CALLS_REAL_METHODS)
-    private PassportDtoMapperImpl passportDtoMapperMock;
+    @Mock
+    private VehicleDomainMapperImpl vehicleDomainMapperImplMock;
+    @Mock
+    private PersonDomainMapperImpl personDomainMapperImplMock;
 
     @Test
     void getVehiclesListTest() {
-        Vehicle vehicle = new Vehicle(1, "test", "test1", 123, Collections.emptySet());
+        Vehicle vehicle = new Vehicle(1, "test", "test1", 123);
         List<Vehicle> vehicleList = new ArrayList<>();
         vehicleList.add(vehicle);
 
-        doReturn(vehicleList).when(vehicleRepositoryMock).findAll();
+        doReturn(new ArrayList<>()).when(vehicleRepositoryMock).findAll();
+        doReturn(vehicleList).when(vehicleDomainMapperImplMock).toVehicleList(anyList());
 
         assertEquals(vehicleList, vehicleService.getVehiclesList());
     }
 
     @Test
-    void getVehicleByVinPositiveTest() {
-        Vehicle vehicle = new Vehicle(1, "BMW", "X5",
-                1990, null);
-        doReturn(Optional.of(vehicle)).when(vehicleRepositoryMock).findById(any());
+    void getVehicleEntityByVinPositiveTest() {
+        VehicleEntity vehicleEntity = new VehicleEntity(1, "BMW", "X5", 1990, null);
+        doReturn(Optional.of(vehicleEntity)).when(vehicleRepositoryMock).findById(any());
+
+        assertEntities(vehicleEntity, vehicleService.getVehicleEntityByVin(1));
+    }
+
+    @Test
+    void getVehicleEntityByVinVehicleNotFoundTest() {
+        doReturn(Optional.empty()).when(vehicleRepositoryMock).findById(any());
+
+        assertThrows(ResourceNotFoundException.class, () -> vehicleService.getVehicleEntityByVin(1));
+    }
+
+    @Test
+    void getVehicleByVinTest() {
+        Vehicle vehicle = new Vehicle(1, "brand", "model", 1234);
+
+        doReturn(Optional.of(new VehicleEntity())).when(vehicleRepositoryMock).findById(any());
+        doReturn(vehicle).when(vehicleDomainMapperImplMock).toVehicle(any());
 
         assertEquals(vehicle, vehicleService.getVehicleByVin(1));
     }
 
     @Test
-    void getVehicleByVinNegativeTest() {
-        doReturn(Optional.empty()).when(vehicleRepositoryMock).findById(any());
-
-        assertThrows(ResourceNotFoundException.class, () -> vehicleService.getVehicleByVin(1));
-    }
-
-    @Test
     void addVehiclePositiveTest() {
-        ArgumentCaptor<Vehicle> vehicleCaptor = ArgumentCaptor.forClass(Vehicle.class);
-        VehicleDto vehicleDto = new VehicleDto();
-        vehicleDto.setBrand("Test");
-        vehicleDto.setYear(2000);
+        ArgumentCaptor<VehicleEntity> vehicleCaptor = ArgumentCaptor.forClass(VehicleEntity.class);
+        doReturn(new VehicleEntity(1, "Brand", "Model", 1234, null))
+                .when(vehicleDomainMapperImplMock).toVehicleEntity(any(Vehicle.class));
 
-        vehicleService.addVehicle(vehicleDto);
-        verify(vehicleDtoMapperImplMock).toVehicle(vehicleDto);
+        vehicleService.addVehicle(new Vehicle());
         verify(vehicleRepositoryMock).save(vehicleCaptor.capture());
-        assertEquals("Test", vehicleCaptor.getValue().getBrand());
-        assertEquals(2000, vehicleCaptor.getValue().getYear());
+        assertEquals("Brand", vehicleCaptor.getValue().getBrand());
+        assertEquals(1234, vehicleCaptor.getValue().getYear());
     }
 
     @Test
@@ -97,80 +107,90 @@ class VehicleServiceTest {
 
     @Test
     void editVehicleByVinPositiveTest() {
-        VehicleDto changedVehicleDto = new VehicleDto();
-        changedVehicleDto.setYear(1990);
-        Vehicle vehicle = new Vehicle();
-        vehicle.setBrand("Test");
-        vehicle.setYear(2000);
+        Vehicle changedVehicle = new Vehicle();
+        changedVehicle.setYear(1990);
+        VehicleEntity vehicleEntity = new VehicleEntity();
+        vehicleEntity.setBrand("Test");
+        vehicleEntity.setYear(2000);
 
-        doReturn(Optional.of(vehicle)).when(vehicleRepositoryMock).findById(any());
+        doReturn(Optional.of(vehicleEntity)).when(vehicleRepositoryMock).findById(any());
+        doCallRealMethod().when(vehicleDomainMapperImplMock).updateVehicleEntity(any(), any());
 
-        vehicleService.editVehicleByVin(1, changedVehicleDto);
-        assertEquals("Test", vehicle.getBrand());
-        assertEquals(1990, vehicle.getYear());
+        vehicleService.editVehicleByVin(1, changedVehicle);
+        assertEquals("Test", vehicleEntity.getBrand());
+        assertEquals(1990, vehicleEntity.getYear());
     }
 
     @Test
-    void editVehicleByVinNegativeTest() {
+    void editVehicleByVinVehicleNotFoundTest() {
         doReturn(Optional.empty()).when(vehicleRepositoryMock).findById(any());
 
-        assertThrows(ResourceNotFoundException.class, () -> vehicleService.editVehicleByVin(1, new VehicleDto()));
-        verify(vehicleDtoMapperImplMock, never()).updateVehicle(any(), any());
+        assertThrows(ResourceNotFoundException.class, () -> vehicleService.editVehicleByVin(1, new Vehicle()));
+        verify(vehicleDomainMapperImplMock, never()).updateVehicleEntity(any(), any());
     }
 
     @Test
     void getVehicleOwnersPositiveTest() {
-        Person person1 = new Person();
-        person1.setName("First");
-        Person person2 = new Person();
-        person2.setName("Second");
-        HashSet<Person> people = new HashSet<>();
-        people.add(person1);
-        people.add(person2);
-        Vehicle vehicle = new Vehicle();
-        vehicle.setPeople(people);
+        List<Person> people = new ArrayList<>(List.of(new Person(), new Person()));
 
-        doReturn(Optional.of(vehicle)).when(vehicleRepositoryMock).findById(any());
+        doReturn(Optional.of(new VehicleEntity())).when(vehicleRepositoryMock).findById(any());
+        doReturn(people).when(personDomainMapperImplMock).toPersonList(any());
 
         assertEquals(people, vehicleService.getVehicleOwners(1));
     }
 
     @Test
-    void getVehicleOwnersNegativeTest() {
+    void getVehicleOwnersVehicleNotFoundTest() {
         doReturn(Optional.empty()).when(vehicleRepositoryMock).findById(any());
 
         assertThrows(ResourceNotFoundException.class, () -> vehicleService.getVehicleOwners(1));
+        verify(personDomainMapperImplMock, never()).toPersonList(any());
+    }
+
+    @Test
+    void getVehicleOwnersNullOrEmptyOwnersTest() {
+        doReturn(Optional.of(new VehicleEntity())).when(vehicleRepositoryMock).findById(any());
+
+        doReturn(null).when(personDomainMapperImplMock).toPersonList(any());
+        assertThrows(RuntimeException.class, () -> vehicleService.getVehicleOwners(1));
+
+        doReturn(Collections.emptyList()).when(personDomainMapperImplMock).toPersonList(any());
+        assertThrows(RuntimeException.class, () -> vehicleService.getVehicleOwners(1));
+    }
+
+    @Test
+    void getVehicleOwnersNullOwnersInEntitySetTest() {
+        doReturn(Optional.of(new VehicleEntity())).when(vehicleRepositoryMock).findById(any());
+
+        /* Only null owners test */
+        List<Person> personList = new ArrayList<>();
+        personList.add(null);
+        doReturn(personList).when(personDomainMapperImplMock).toPersonList(any());
+        assertThrows(RuntimeException.class, () -> vehicleService.getVehicleOwners(1));
+
+        /* Exists not null owner */
+        personList.add(new Person());
+        doReturn(personList).when(personDomainMapperImplMock).toPersonList(any());
+        assertEquals(personList, vehicleService.getVehicleOwners(1));
     }
 
     @Test
     void getVehicleOwnersPassportsPositiveTest() {
-        Passport passport1 = new Passport();
-        passport1.setNumber("123");
-        passport1.setSeries("456");
-        Passport passport2 = new Passport();
-        passport2.setNumber("789");
-        passport2.setSeries("098");
+        Passport passport1 = new Passport(1, "123", "456");
+        Passport passport2 = new Passport(2, "789", "098");
+        Person person1 = new Person(1, null, null, null, passport1);
+        Person person2 = new Person(2, null, null, null, passport2);
+        List<Person> people = new ArrayList<>(List.of(person1, person2));
 
-        Person person1 = new Person();
-        person1.setId(1);
-        person1.setPassport(passport1);
-        Person person2 = new Person();
-        person2.setId(2);
-        person2.setPassport(passport2);
+        List<Passport> expectedResult = List.of(passport1, passport2);
+        doReturn(Optional.of(new VehicleEntity())).when(vehicleRepositoryMock).findById(any());
+        doReturn(people).when(personDomainMapperImplMock).toPersonList(any());
 
-        HashSet<Person> people = new HashSet<>();
-        people.add(person1);
-        people.add(person2);
-        Vehicle vehicle = new Vehicle();
-        vehicle.setPeople(people);
-
-
-        List<PassportDto> expectedResult = List.of(passportDtoMapperMock.toPassportDto(passport1),
-                passportDtoMapperMock.toPassportDto(passport2));
-
-        doReturn(Optional.of(vehicle)).when(vehicleRepositoryMock).findById(any());
-        assertEquals(expectedResult, vehicleService.getVehicleOwnersPassports(1));
+        var result = vehicleService.getVehicleOwnersPassports(1);
+        assertTrue(result.containsAll(expectedResult));
+        assertEquals(expectedResult.size(), result.size());
     }
+
 
     @Test
     void getVehicleOwnersPassportsVehicleNotFoundTest() {
@@ -180,14 +200,57 @@ class VehicleServiceTest {
     }
 
     @Test
-    void getVehicleOwnersPassportsVehicleOwnersEmptyOrNullTest() {
-        Vehicle vehicle = new Vehicle();
-        vehicle.setPeople(Collections.emptySet());
+    void getVehicleOwnersPassportsVehicleOwnersSetHasNullOwnerTest() {
+        Passport passport1 = new Passport(1, "123", "456");
+        Person person1 = new Person(1, null, null, null, passport1);
+        List<Person> people = new ArrayList<>();
+        people.add(person1);
+        people.add(null);
 
-        doReturn(Optional.of(vehicle)).when(vehicleRepositoryMock).findById(any());
-        assertThrows(RuntimeException.class, () -> vehicleService.getVehicleOwnersPassports(1));
+        List<Passport> expectedResult = List.of(passport1);
+        doReturn(Optional.of(new VehicleEntity())).when(vehicleRepositoryMock).findById(any());
+        doReturn(people).when(personDomainMapperImplMock).toPersonList(any());
 
-        doReturn(Optional.of(new Vehicle())).when(vehicleRepositoryMock).findById(any());
-        assertThrows(RuntimeException.class, () -> vehicleService.getVehicleOwnersPassports(1));
+        var result = vehicleService.getVehicleOwnersPassports(1);
+        assertTrue(result.containsAll(expectedResult));
+        assertEquals(expectedResult.size(), result.size());
+    }
+
+    @Test
+    void getPeopleListPeopleExist() {
+        VehicleEntity vehicleEntity = new VehicleEntity();
+        Set<PersonEntity> personEntitySet = new HashSet<>();
+        PersonEntity personEntity1 =
+                new PersonEntity(1, "Ivan", null, null, null, null);
+        PersonEntity personEntity2 =
+                new PersonEntity(2, "Marya", null, null, null, null);
+        personEntitySet.add(personEntity1);
+        personEntitySet.add(personEntity2);
+        vehicleEntity.setPeople(personEntitySet);
+
+        var result = vehicleService.getPeopleList(vehicleEntity);
+        assertTrue(personEntitySet.containsAll(result));
+        assertEquals(personEntitySet.size(), result.size());
+    }
+
+    @Test
+    void getVehiclesListVehiclesNull() {
+        assertNull(vehicleService.getPeopleList(new VehicleEntity()));
+    }
+
+    @Test
+    void getVehiclesListVehiclesEmpty() {
+        VehicleEntity vehicleEntity = new VehicleEntity();
+        vehicleEntity.setPeople(Collections.emptySet());
+
+        assertTrue(vehicleService.getPeopleList(vehicleEntity).isEmpty());
+    }
+
+    private void assertEntities(VehicleEntity vehicleEntity1, VehicleEntity vehicleEntity2) {
+        assertEquals(vehicleEntity1.getVin(), vehicleEntity2.getVin());
+        assertEquals(vehicleEntity1.getBrand(), vehicleEntity2.getBrand());
+        assertEquals(vehicleEntity1.getModel(), vehicleEntity2.getModel());
+        assertEquals(vehicleEntity1.getYear(), vehicleEntity2.getYear());
+        assertEquals(vehicleEntity1.getPeople(), vehicleEntity2.getPeople());
     }
 }
